@@ -1,0 +1,4 @@
+Assigned Problem Statement:
+Automated Meeting Minutes Generator
+Brief Problem Description:
+Convert meeting audio into text and identify key discussions, decisions, action items, responsible people and deadlines. Generate editable structured meeting minutes.
