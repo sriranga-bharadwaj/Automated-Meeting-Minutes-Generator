@@ -137,3 +137,81 @@ def test_create_meeting_with_missing_title():
         and item["type"] == "missing"
         for item in error
     )
+
+    
+from pathlib import Path
+
+from app.main import AUDIO_UPLOAD_DIR, MAX_AUDIO_SIZE
+
+
+def create_test_meeting():
+    response = client.post(
+        "/meetings",
+        json={
+            "title": "Audio Upload Test",
+            "description": "Testing audio upload.",
+        },
+    )
+    assert response.status_code == 201
+    return response.json()["id"]
+
+
+def test_upload_audio_success():
+    meeting_id = create_test_meeting()
+
+    response = client.post(
+        f"/meetings/{meeting_id}/audio",
+        files={"file": ("test.wav", b"fake audio data", "audio/wav")},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["status"] == "uploaded"
+
+    audio_path = AUDIO_UPLOAD_DIR / f"{response.json()['audio_id']}.wav"
+    audio_path.unlink(missing_ok=True)
+
+
+def test_upload_unsupported_audio_type():
+    meeting_id = create_test_meeting()
+
+    response = client.post(
+        f"/meetings/{meeting_id}/audio",
+        files={"file": ("test.txt", b"not audio", "text/plain")},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Unsupported audio file type."
+
+
+def test_upload_audio_for_missing_meeting():
+    response = client.post(
+        "/meetings/nonexistent-meeting/audio",
+        files={"file": ("test.wav", b"fake audio data", "audio/wav")},
+    )
+
+    assert response.status_code == 404
+
+
+def test_upload_audio_over_size_limit():
+    meeting_id = create_test_meeting()
+
+    response = client.post(
+        f"/meetings/{meeting_id}/audio",
+        files={
+            "file": (
+                "large.wav",
+                b"x" * (MAX_AUDIO_SIZE + 1),
+                "audio/wav",
+            )
+        },
+    )
+
+    assert response.status_code == 413
+    assert response.json()["detail"] == "Audio file exceeds the 25 MB limit."
+
+    for path in AUDIO_UPLOAD_DIR.glob("*.wav"):
+        # The endpoint removes the oversized partial upload.
+        # Other test files should not be affected in normal test runs.
+        if path.stat().st_size == 0:
+            path.unlink(missing_ok=True)
+
