@@ -1,5 +1,4 @@
-
-# Python cache
+# Python
 __pycache__/
 *.py[cod]
 
@@ -12,3 +11,6 @@ venv/
 
 # Environment variables
 .env
+
+# Local SQLite database
+*.db
