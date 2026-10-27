@@ -14,3 +14,7 @@ venv/
 
 # Local SQLite database
 *.db
+
+# Local database and uploaded audio
+backend/ammg.db
+backend/uploads/audio/
