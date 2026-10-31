@@ -1,9 +1,12 @@
 import json
+import os
 import re
 from typing import Callable, Optional
-from pydantic import BaseModel, Field, ValidationError
-import os
 
+import ollama
+from pydantic import BaseModel, Field, ValidationError
+
+from .schema import MeetingMinutes, ActionItem, Decision, Topic
 from .prompts import (
     SYSTEM_PROMPT,
     build_user_prompt,
@@ -13,21 +16,15 @@ from .prompts import (
     build_action_prompt,
 )
 
-import ollama
-from pydantic import BaseModel, ValidationError
-
-from .schema import MeetingMinutes, ActionItem, Decision, Topic
-from .prompts import (
-    SYSTEM_PROMPT,
-    build_user_prompt,
-    OVERVIEW_SYSTEM_PROMPT,
-    build_overview_prompt,
-)
-
 DEFAULT_MODEL = os.environ.get("MINUTES_MODEL", "qwen2.5:7b")
 NUM_CTX = 8192        # context window we ask Ollama for (default is only 4096)
 CHUNK_WORDS = 1200    # max words of transcript per chunk
 OVERLAP_LINES = 3     # lines repeated between neighbouring chunks
+
+STOPWORDS = {
+    "a", "an", "the", "for", "and", "or", "to", "of", "in", "on", "at", "by",
+    "it", "is", "be", "we", "will", "that", "this", "with", "as",
+}
 
 
 class MinutesGenerationError(Exception):
@@ -37,6 +34,7 @@ class MinutesGenerationError(Exception):
 class Overview(BaseModel):
     title: str
     summary: str
+
 
 class LLMTopic(BaseModel):
     title: str
@@ -54,6 +52,7 @@ class LLMMinutes(BaseModel):
     decisions: list[Decision] = Field(default_factory=list)
     action_items: list[ActionItem] = Field(default_factory=list)
 
+
 class ActionPassItem(BaseModel):
     source_quote: str = ""
     task: str
@@ -63,6 +62,7 @@ class ActionPassItem(BaseModel):
 
 class ActionPass(BaseModel):
     action_items: list[ActionPassItem] = Field(default_factory=list)
+
 
 # ---------- LLM call helper ----------
 
@@ -109,6 +109,7 @@ def chunk_transcript(
     if current:
         chunks.append("\n".join(current))
     return chunks
+
 
 # ---------- timestamps ----------
 
@@ -164,21 +165,46 @@ def _to_minutes(llm: LLMMinutes, chunk: str) -> MeetingMinutes:
 
 DEADLINE_RE = re.compile(r"\b((?:before|after|by|until|within)\s+[^.,;!?]+)", re.IGNORECASE)
 
+PLACEHOLDER_OWNERS = {
+    "someone", "somebody", "anyone", "anybody", "nobody", "no one", "everyone",
+    "everybody", "unknown", "unassigned", "none", "null", "n/a", "na", "tbd",
+    "team", "the team", "speaker", "attendee", "late attendee", "participant",
+}
+NAME_FILLER = {"and", "the", "of", "team"}
 
-def find_line(quote: Optional[str], chunk: str) -> Optional[str]:
-    """Return the transcript line that best matches the quote (timestamps not required)."""
+
+def _clean_owner(owner: Optional[str], text: str) -> Optional[str]:
+    """Drop placeholder owners ('Someone') and names that never occur in the transcript."""
+    if not owner or not owner.strip():
+        return None
+    owner = owner.strip()
+    if owner.lower() in PLACEHOLDER_OWNERS:
+        return None
+    text_words = set(re.findall(r"\w+", text.lower()))
+    tokens = [t for t in re.findall(r"\w+", owner.lower()) if t not in NAME_FILLER]
+    return owner if any(t in text_words for t in tokens) else None
+
+
+def _best_line_index(quote: Optional[str], lines: list[str]) -> Optional[int]:
     if not quote:
         return None
     qset = set(re.findall(r"\w+", quote.lower()))
     if not qset:
         return None
     best, best_score = None, 0.0
-    for line in chunk.splitlines():
+    for i, line in enumerate(lines):
         words = set(re.findall(r"\w+", TS_RE.sub("", line).lower()))
         score = len(qset & words) / len(qset)
         if score > best_score:
-            best, best_score = line, score
+            best, best_score = i, score
     return best if best_score >= 0.6 else None
+
+
+def find_line(quote: Optional[str], chunk: str) -> Optional[str]:
+    """Return the transcript line that best matches the quote (timestamps not required)."""
+    lines = chunk.splitlines()
+    i = _best_line_index(quote, lines)
+    return lines[i] if i is not None else None
 
 
 def fallback_deadline(line: Optional[str]) -> Optional[str]:
@@ -189,25 +215,36 @@ def fallback_deadline(line: Optional[str]) -> Optional[str]:
     return m.group(1).strip() if m else None
 
 
+def _deadline_supported(deadline: str, window: str) -> bool:
+    """Is the deadline really mentioned in (or right after) the task's source line?"""
+    words = {w for w in re.findall(r"\w+", deadline.lower()) if w not in STOPWORDS}
+    if not words:
+        return True
+    present = set(re.findall(r"\w+", TS_RE.sub("", window).lower()))
+    return len(words & present) / len(words) >= 0.6
+
+
 def _extract_actions(model: str, chunk: str, max_retries: int) -> list[ActionItem]:
     result = _chat_json(model, ACTION_SYSTEM_PROMPT, build_action_prompt(chunk),
                         ActionPass, max_retries)
+    lines = chunk.splitlines()
     items = []
     for a in result.action_items:
-        deadline = a.deadline or fallback_deadline(find_line(a.source_quote, chunk))
+        idx = _best_line_index(a.source_quote, lines)
+        line = lines[idx] if idx is not None else None
+        window = " ".join(lines[idx:idx + 2]) if idx is not None else None
+
+        deadline = a.deadline
+        if deadline and window and not _deadline_supported(deadline, window):
+            deadline = None          # the model borrowed it from a neighbouring task
         if deadline is None:
-            # second try: the transcript line that best matches the task wording
-            deadline = fallback_deadline(find_line(a.task, chunk))
-        items.append(ActionItem(task=a.task, owner=a.owner, deadline=deadline))
+            deadline = fallback_deadline(line) or fallback_deadline(find_line(a.task, chunk))
+
+        items.append(ActionItem(task=a.task, owner=_clean_owner(a.owner, chunk), deadline=deadline))
     return items
 
+
 # ---------- merging ----------
-
-STOPWORDS = {
-    "a", "an", "the", "for", "and", "or", "to", "of", "in", "on", "at", "by",
-    "it", "is", "be", "we", "will", "that", "this", "with", "as",
-}
-
 
 def _words(text: str) -> set:
     return {w for w in re.findall(r"\w+", text.lower()) if w not in STOPWORDS}
@@ -244,6 +281,7 @@ def _dedupe_actions(items: list[ActionItem]) -> list[ActionItem]:
             dup.deadline = item.deadline
     return kept
 
+
 def _merge_main_into_focused(
     focused: list[ActionItem],
     main: list[ActionItem],
@@ -267,6 +305,7 @@ def _merge_main_into_focused(
             dup.deadline = item.deadline
     return out
 
+
 def _dedupe_decisions(items: list[Decision]) -> list[Decision]:
     kept: list[Decision] = []
     for item in items:
@@ -282,6 +321,7 @@ def _dedupe_decisions(items: list[Decision]) -> list[Decision]:
             dup.context = item.context
     return kept
 
+
 def _drop_task_decisions(
     decisions: list[Decision], actions: list[ActionItem], threshold: float = 0.8
 ) -> list[Decision]:
@@ -290,6 +330,7 @@ def _drop_task_decisions(
         d for d in decisions
         if not any(_similar(d.decision, a.task, threshold) for a in actions)
     ]
+
 
 def _dedupe_topics(items: list[Topic]) -> list[Topic]:
     kept: list[Topic] = []
@@ -306,6 +347,45 @@ def _dedupe_names(names: list[str]) -> list[str]:
             seen.add(n.lower())
             out.append(n)
     return out
+
+# ---------- safety net for missed commitments ----------
+
+COMMIT_RE = re.compile(
+    r"\bi(?:['’]ll| will|['’]m going to| am going to| should have"
+    r"| can (?:take|look|handle|do|get|send|check|pick|own|start))\b"
+    r"|\blet me\b",
+    re.IGNORECASE,
+)
+
+
+def _uncovered_commitment_lines(chunk: str, actions: list[ActionItem], threshold: float = 0.4) -> list[int]:
+    """Indexes of lines that contain a first-person commitment but match no action item."""
+    lines = chunk.splitlines()
+    missing = []
+    for i, line in enumerate(lines):
+        if not COMMIT_RE.search(TS_RE.sub("", line)):
+            continue
+        window_words = _words(TS_RE.sub("", " ".join(lines[max(0, i - 1): i + 1])))
+        covered = False
+        for a in actions:
+            task_words = _words(a.task)
+            if task_words and len(task_words & window_words) / len(task_words) >= threshold:
+                covered = True
+                break
+        if not covered:
+            missing.append(i)
+    return missing
+
+
+def _add_missed_commitments(
+    model: str, chunk: str, actions: list[ActionItem], max_retries: int, max_calls: int = 6
+) -> list[ActionItem]:
+    lines = chunk.splitlines()
+    for i in _uncovered_commitment_lines(chunk, actions)[:max_calls]:
+        mini = "\n".join(lines[max(0, i - 1): i + 1])      # the line plus the one before it
+        found = _extract_actions(model, mini, max_retries)
+        actions = _merge_main_into_focused(actions, found)  # existing items win; new ones are added
+    return actions
 
 
 # ---------- public function ----------
@@ -331,15 +411,26 @@ def generate_minutes(
         llm = _chat_json(model, SYSTEM_PROMPT, build_user_prompt(chunk),
                          LLMMinutes, max_retries)
         minutes = _to_minutes(llm, chunk)
+
+        # Remove invented or placeholder names ("Someone", "Late Attendee") before merging,
+        # so duplicates with a fake owner can merge with the real one.
+        minutes.participants = _dedupe_names(
+            [p for p in (_clean_owner(n, chunk) for n in minutes.participants) if p]
+        )
+        for a in minutes.action_items:
+            a.owner = _clean_owner(a.owner, chunk)
+
         extra = _extract_actions(model, chunk, max_retries)
         minutes.action_items = _merge_main_into_focused(
             _dedupe_actions(extra),
             _dedupe_actions(minutes.action_items),
         )
+        minutes.action_items = _add_missed_commitments(model, chunk, minutes.action_items, max_retries)
         minutes.decisions = _drop_task_decisions(minutes.decisions, minutes.action_items)
         parts.append(minutes)
         if progress:
             progress(i, len(chunks))
+
     if len(parts) == 1:
         return parts[0]
 

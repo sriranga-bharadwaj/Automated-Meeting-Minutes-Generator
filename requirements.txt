@@ -8,3 +8,4 @@ sqlalchemy
 faster-whisper
 pydantic
 ollama
+av<19

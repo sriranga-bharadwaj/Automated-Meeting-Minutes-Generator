@@ -1,11 +1,18 @@
-from minutes import ActionItem
-from minutes.generator import chunk_transcript, _dedupe_actions
-from minutes import Decision
-from minutes.generator import _dedupe_decisions
-from minutes.generator import find_start_time
-from minutes.generator import find_line, fallback_deadline
-from minutes.generator import _merge_main_into_focused
-from minutes.generator import _drop_task_decisions
+from minutes import ActionItem, Decision
+from minutes.generator import (
+    chunk_transcript,
+    find_start_time,
+    find_line,
+    fallback_deadline,
+    _dedupe_actions,
+    _dedupe_decisions,
+    _merge_main_into_focused,
+    _drop_task_decisions,
+    _clean_owner,
+    _deadline_supported,
+    _uncovered_commitment_lines,
+)
+
 
 def make_transcript(n_lines, words_per_line=10):
     return "\n".join(
@@ -53,6 +60,7 @@ def test_dedupe_keeps_different_owners_apart():
     ]
     assert len(_dedupe_actions(items)) == 2
 
+
 def test_dedupe_actions_with_different_wording():
     items = [
         ActionItem(task="Record a sample meeting for the demo", owner="Meera", deadline="Monday"),
@@ -90,6 +98,7 @@ def test_different_decisions_stay_apart():
     ]
     assert len(_dedupe_decisions(items)) == 2
 
+
 CHUNK = (
     "[00:00:14] Ravi, where are we with the frontend screens?\n"
     "[00:00:19] The upload page is done.\n"
@@ -116,6 +125,7 @@ def test_find_start_time_no_match_returns_none():
 def test_find_start_time_without_timestamps_returns_none():
     assert find_start_time("hello there", "hello there\nhow are you") is None
 
+
 def test_decision_context_follows_the_longer_wording():
     items = [
         Decision(decision="Use a pre-recorded demo",
@@ -126,6 +136,7 @@ def test_decision_context_follows_the_longer_wording():
     out = _dedupe_decisions(items)
     assert len(out) == 1
     assert out[0].context == "Safer if the internet fails"
+
 
 def test_fallback_deadline_event():
     assert fallback_deadline("[00:00:31] I'll swap them out before the review.") == "before the review"
@@ -147,6 +158,7 @@ def test_find_line_returns_the_whole_line():
     )
     assert "before the review" in find_line("Mostly. The copy is final", chunk)
 
+
 def test_main_pass_duplicate_is_absorbed_by_focused_pass():
     focused = [ActionItem(task="Swap out the images on the pricing page",
                           owner="Anita", deadline="before the review")]
@@ -162,6 +174,7 @@ def test_main_pass_unique_item_is_kept():
     main = [ActionItem(task="Book the meeting room", owner="Dev")]
     assert len(_merge_main_into_focused(focused, main)) == 2
 
+
 def test_find_line_by_task_wording_gives_the_deadline():
     chunk = (
         "[00:01:23] One more thing, someone needs to write the README before submission. "
@@ -169,6 +182,7 @@ def test_find_line_by_task_wording_gives_the_deadline():
         "[00:01:31] Let's leave that open for now and revisit it next meeting."
     )
     assert fallback_deadline(find_line("Write the README", chunk)) == "before submission"
+
 
 def test_task_assignment_is_not_a_decision():
     decisions = [
@@ -184,3 +198,42 @@ def test_real_decision_is_kept():
     decisions = [Decision(decision="Use a pre-recorded five-minute meeting for the demo")]
     actions = [ActionItem(task="Record the sample meeting and send it to Priya", owner="Meera")]
     assert len(_drop_task_decisions(decisions, actions)) == 1
+
+
+def test_placeholder_owner_becomes_none():
+    assert _clean_owner("Someone", "Someone should look at it") is None
+    assert _clean_owner("Late Attendee", "Dev was late") is None
+
+
+def test_owner_must_appear_in_the_transcript():
+    assert _clean_owner("Priya", "Ravi will do it") is None
+    assert _clean_owner("Ravi", "Ravi will do it") == "Ravi"
+    assert _clean_owner("Ravi and Priya", "Ravi will do it") == "Ravi and Priya"
+
+
+def test_borrowed_deadline_is_rejected():
+    window = "[00:00:46] Also, we need to email the beta users about the downtime. Not sure who does that."
+    assert not _deadline_supported("after the review", window)
+    assert _deadline_supported("end of the day tomorrow",
+                               "send me the sheet by the end of the day tomorrow")
+
+COMMIT_CHUNK = (
+    "[00:00:14] Ravi, where are we with the frontend screens?\n"
+    "[00:00:19] The upload page is done, but the minutes editor still needs work. I should have it ready by Wednesday.\n"
+    "[00:00:31] Good. Priya, how is the transcription module?\n"
+    "[00:00:36] It works on short clips, but longer recordings are slow. I'll try splitting the audio into chunks.\n"
+)
+
+
+def test_missed_commitment_lines_are_found():
+    assert _uncovered_commitment_lines(COMMIT_CHUNK, []) == [1, 3]
+
+
+def test_covered_commitment_is_not_flagged():
+    actions = [ActionItem(task="Finish the minutes editor screen", owner="Ravi", deadline="Wednesday")]
+    assert _uncovered_commitment_lines(COMMIT_CHUNK, actions) == [3]
+
+
+def test_non_commitment_lines_are_ignored():
+    chunk = "[00:00:05] Can you hear me?\n[00:00:09] Yes, we can hear you.\n"
+    assert _uncovered_commitment_lines(chunk, []) == []
