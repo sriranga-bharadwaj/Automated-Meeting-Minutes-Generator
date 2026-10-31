@@ -6,3 +6,5 @@ pytest
 httpx
 sqlalchemy
 faster-whisper
+pydantic
+ollama

@@ -1,0 +1,12 @@
+{
+  "participants": ["Ravi", "Priya", "Meera"],
+  "decisions": [
+    "Use a pre-recorded five minute meeting for the demo instead of a live recording"
+  ],
+  "action_items": [
+    {"task": "Finish the minutes editor screen", "owner": "Ravi", "deadline": "Wednesday"},
+    {"task": "Split long audio into chunks to speed up transcription", "owner": "Priya", "deadline": null},
+    {"task": "Record the sample meeting and send it to Priya", "owner": "Meera", "deadline": "Monday"},
+    {"task": "Write the README", "owner": null, "deadline": "submission"}
+  ]
+}

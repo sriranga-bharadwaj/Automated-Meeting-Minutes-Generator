@@ -1,0 +1,16 @@
+[00:00:04] Okay, is everyone here? Let's start. Today is mostly about the launch checklist.
+[00:00:12] Sorry, I'm late, my camera isn't working. Can you hear me?
+[00:00:17] Yes we can hear you Dev. Anyway, the first thing is the pricing page.
+[00:00:25] Uh, I think Anita was working on that? Anita, is the pricing page done?
+[00:00:31] Mostly. The copy is final but the images are still placeholders. I'll swap them out before the review.
+[00:00:42] When's the review again?
+[00:00:45] Tuesday afternoon. Actually wait, the client can't do Tuesday. Let's move it to Thursday.
+[00:00:53] Thursday works. Okay, so the review is Thursday, final.
+[00:01:00] Next, the payment bug. Someone should look at why refunds are failing.
+[00:01:07] Yeah that's been open for weeks.
+[00:01:10] I can look at it, but not before next week. Maybe after the review.
+[00:01:19] Fine. Dev, you've got the refund bug then, after the review.
+[00:01:25] Also we need to email the beta users about the downtime. Not sure who does that.
+[00:01:32] Let's park that, we'll figure it out offline.
+[00:01:37] Okay. Oh, and Dev, please send me the updated budget sheet by end of day tomorrow.
+[00:01:44] Will do. Alright, thanks everyone.

@@ -1,0 +1,12 @@
+[00:00:05] Okay, let's get started. Today we need to finalize the demo plan for the project review.
+[00:00:14] Ravi, where are we with the frontend screens?
+[00:00:19] The upload page is done, but the minutes editor still needs work. I should have it ready by Wednesday.
+[00:00:31] Good. Priya, how is the transcription module?
+[00:00:36] It works on short clips, but longer recordings are slow. I'll try splitting the audio into chunks.
+[00:00:48] Okay, let's decide on the demo. Should we use a live recording or a pre-recorded one?
+[00:00:56] Pre-recorded is safer. If the internet fails during the demo, we're stuck.
+[00:01:04] Agreed. We'll go with a pre-recorded five minute meeting for the demo.
+[00:01:12] Meera, can you record that sample meeting and send it to Priya by Monday?
+[00:01:18] Sure, I'll do it this weekend.
+[00:01:23] One more thing, someone needs to write the README before submission. Nobody has volunteered yet.
+[00:01:31] Let's leave that open for now and revisit it next meeting. Thanks everyone.
