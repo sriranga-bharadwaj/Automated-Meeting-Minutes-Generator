@@ -1,0 +1,11 @@
+{
+  "participants": ["Dev", "Anita"],
+  "decision_must_mention": "Thursday",
+  "decisions": ["Hold the client review on Thursday instead of Tuesday"],
+  "action_items": [
+    {"task": "Replace the placeholder images on the pricing page", "owner": "Anita", "deadline": "review"},
+    {"task": "Investigate and fix the failing refunds bug", "owner": "Dev", "deadline": "review"},
+    {"task": "Email the beta users about the downtime", "owner": null, "deadline": null},
+    {"task": "Send the updated budget sheet", "owner": "Dev", "deadline": "tomorrow"}
+  ]
+}
