@@ -18,3 +18,9 @@ venv/
 # Local database and uploaded audio
 backend/ammg.db
 backend/uploads/audio/
+
+# Node / Frontend
+node_modules/
+dist/
+coverage/
+.env.local
