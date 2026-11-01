@@ -81,3 +81,11 @@ class AudioDB(Base):
         server_default=func.now(),
         nullable=False,
     )
+
+class MeetingMetaDB(Base):
+    """Extra meeting details from the frontend form, stored as JSON."""
+
+    __tablename__ = "meeting_meta"
+
+    meeting_id = Column(String, ForeignKey("meetings.id"), primary_key=True)
+    meta_json = Column(Text, nullable=False, default="{}")

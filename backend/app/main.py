@@ -14,6 +14,8 @@ from app.models import AudioDB, MeetingDB, MinutesDB, TranscriptDB
 from app.minutes_generator import generate_minutes
 from app.transcription import transcribe_audio
 
+from app.api_v1 import router as api_v1_router
+
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +40,8 @@ app = FastAPI(
     description="API for generating structured meeting minutes from audio.",
     version="0.4.0",
 )
+
+app.include_router(api_v1_router)
 
 
 class MeetingCreate(BaseModel):
