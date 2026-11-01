@@ -233,7 +233,10 @@ def transcribe_meeting(
                 detail="No speech was detected in the audio.",
             )
 
-        minutes = generate_minutes(transcript_text)
+        minutes = generate_minutes(
+            transcript_text,
+            segments=transcription.get("segments"),
+        )
 
         transcript_record = TranscriptDB(
             id=str(uuid4()),
