@@ -21,6 +21,8 @@ from app.transcription import (
 )
 from app.ui_schema import ExportRequest, SaveMinutesRequest
 
+from app.api_v1 import router as api_v1_router
+
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +57,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(api_v1_router)
 
 
 class AttendeeIn(BaseModel):

@@ -76,12 +76,12 @@ def _describe_action(item: dict) -> str:
     return f"{item['task']} [owner: {owner}; deadline: {deadline}]"
 
 
-def _llm_minutes(transcript: str, segments=None) -> dict:
+def _llm_minutes(transcript: str, segments=None, progress=None) -> dict:
     # Imported here so the API still starts if the LLM dependencies are missing.
     from minutes import generate_minutes as llm_generate, segments_to_transcript
 
     llm_input = (segments_to_transcript(segments) if segments else "") or transcript
-    data = llm_generate(llm_input).model_dump()
+    data = llm_generate(llm_input, progress=progress).model_dump()
     plain = re.sub(r"\s+", " ", transcript).strip()
 
     return {
@@ -100,14 +100,14 @@ def _llm_minutes(transcript: str, segments=None) -> dict:
     }
 
 
-def generate_minutes(transcript: str, segments=None) -> dict:
+def generate_minutes(transcript: str, segments=None, progress=None) -> dict:
     """Generate meeting minutes: LLM first, keyword draft as the fallback."""
     if not transcript or not transcript.strip():
         raise ValueError("Transcript cannot be empty.")
 
     if os.getenv("MINUTES_ENGINE", "auto").lower() != "basic":
         try:
-            return _llm_minutes(transcript, segments)
+            return _llm_minutes(transcript, segments, progress)
         except Exception:
             logger.exception("LLM minutes generation failed; using the basic draft instead")
 
