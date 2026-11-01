@@ -9,3 +9,5 @@ faster-whisper
 pydantic
 ollama
 av<19
+python-docx
+reportlab

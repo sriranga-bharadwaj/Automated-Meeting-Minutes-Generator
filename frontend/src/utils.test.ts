@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { isLowConfidence, moveItem, toMarkdown, validateAudio, validateMeeting } from './utils';
+import { errorMessage } from './api';
 import type { Minutes } from './types';
 
 describe('validateAudio (TC-FE-02, TC-Aud-01)', () => {
@@ -10,6 +11,24 @@ describe('validateAudio (TC-FE-02, TC-Aud-01)', () => {
     expect(validateAudio({ name: 'notes.txt', size: 10 })).toMatch(/Unsupported/);
     expect(validateAudio({ name: 'a.mp3', size: 0 })).toMatch(/empty/);
     expect(validateAudio({ name: 'a.mp3', size: 600 * 1024 * 1024 })).toMatch(/too large/);
+  });
+  it('uses the backend upload limit of 25 MB', () => {
+    expect(validateAudio({ name: 'a.mp3', size: 25 * 1024 * 1024 })).toBeNull();
+    expect(validateAudio({ name: 'a.mp3', size: 25 * 1024 * 1024 + 1 })).toMatch(/25 MB/);
+  });
+});
+
+describe('errorMessage (backend errors shown to the user)', () => {
+  it('shows the explanation the backend sends for client errors', () => {
+    expect(errorMessage(400, { detail: 'Unsupported audio file type.' })).toBe('Unsupported audio file type.');
+    expect(errorMessage(422, { detail: 'Could not decode audio file (bad data).' })).toMatch(/decode/);
+  });
+  it('falls back to a friendly message for validation arrays and other codes', () => {
+    expect(errorMessage(422, { detail: [{ loc: ['body'] }] })).toMatch(/invalid/);
+    expect(errorMessage(404, {})).toMatch(/could not be found/);
+  });
+  it('hides server error details', () => {
+    expect(errorMessage(500, { detail: 'Traceback ...' })).toMatch(/Something went wrong/);
   });
 });
 

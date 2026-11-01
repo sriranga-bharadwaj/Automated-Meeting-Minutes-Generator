@@ -160,8 +160,11 @@ def preprocess_audio(input_path: Path, output_path: Path) -> Path:
 # --------------------------------------------------------------------------
 # Main entry point
 # --------------------------------------------------------------------------
-def transcribe_audio(audio_path: str) -> dict:
+def transcribe_audio(audio_path: str, language: str | None = None) -> dict:
     """Transcribe an audio file and return text with timestamped segments.
+
+    ``language`` is an optional ISO code such as "en" or "hi". When omitted,
+    Whisper detects the language automatically.
 
     Raises:
         FileNotFoundError: the audio file does not exist.
@@ -194,6 +197,7 @@ def transcribe_audio(audio_path: str) -> dict:
                 str(wav_path),
                 beam_size=5,
                 vad_filter=True,
+                language=language or None,
             )
 
             # `segments` is a generator: decoding happens while iterating,

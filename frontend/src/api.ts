@@ -1,7 +1,8 @@
 import type { ExportFormat, JobStatus, MeetingInput, Minutes } from './types';
 import { cleanAttendees, downloadBlob, toMarkdown, uid } from './utils';
 
-export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
+// The real FastAPI backend is the default. Set VITE_USE_MOCK=true for the offline demo.
+export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 const BASE: string = import.meta.env.VITE_API_URL ?? '/api/v1';
 
 export class ApiError extends Error {
@@ -16,19 +17,26 @@ const FRIENDLY: Record<number, string> = {
   403: 'You do not have access to this meeting.',
   404: 'That meeting could not be found.',
   409: 'Someone else changed these minutes. Reload to see the latest version.',
-  413: 'The file is too large. The maximum size is 500 MB.',
+  413: 'The file is too large. The maximum size is 25 MB.',
   415: 'This file type is not supported. Use MP3, WAV, M4A or MP4.',
+  422: 'Some of the details are invalid. Please check and try again.',
   429: 'Too many requests. Please wait a moment and retry.',
   502: 'The mail server could not be reached.',
 };
 
+// The backend explains these errors itself (e.g. "Unsupported audio file type."), so show its text.
+const BACKEND_EXPLAINS = new Set([400, 404, 409, 413, 422]);
+
+export function errorMessage(status: number, body: { message?: string; detail?: unknown }): string {
+  if (status >= 500 && status !== 502) return 'Something went wrong on the server. Please try again.';
+  if (BACKEND_EXPLAINS.has(status) && typeof body.detail === 'string') return body.detail;
+  return FRIENDLY[status] ?? body.message ?? 'Request failed.';
+}
+
 async function toError(res: Response): Promise<ApiError> {
-  let body: { code?: string; message?: string } = {};
+  let body: { code?: string; message?: string; detail?: unknown } = {};
   try { body = await res.json(); } catch { /* not json */ }
-  const msg = res.status >= 500 && res.status !== 502
-    ? 'Something went wrong on the server. Please try again.'
-    : FRIENDLY[res.status] ?? body.message ?? 'Request failed.';
-  return new ApiError(body.code ?? String(res.status), msg, res.status);
+  return new ApiError(body.code ?? String(res.status), errorMessage(res.status, body), res.status);
 }
 
 async function http(path: string, init: RequestInit = {}): Promise<Response> {
@@ -55,7 +63,7 @@ const json = (body: unknown): RequestInit => ({
 const real = {
   async createMeeting(m: MeetingInput): Promise<{ meetingId: string }> {
     const res = await http('/meetings', { method: 'POST', ...json({ ...m, attendees: cleanAttendees(m.attendees) }) });
-    return res.json();
+    return { meetingId: (await res.json()).id };
   },
   uploadAudio(id: string, file: Blob, name: string, onProgress: (pct: number) => void): Promise<void> {
     // XMLHttpRequest is used because fetch cannot report upload progress.
@@ -67,8 +75,13 @@ const real = {
       xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
       xhr.onerror = () => reject(new ApiError('NETWORK', 'Upload failed. Check your connection and try again.'));
       xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) return resolve();
-        reject(new ApiError(String(xhr.status), FRIENDLY[xhr.status] ?? 'Upload failed.', xhr.status));
+        if (xhr.status >= 200 && xhr.status < 300) {
+          // Upload finished: start transcription and minutes generation in the background.
+          return http(`/meetings/${id}/process`, { method: 'POST' }).then(() => resolve(), reject);
+        }
+        let body: { message?: string; detail?: unknown } = {};
+        try { body = JSON.parse(xhr.responseText); } catch { /* not json */ }
+        reject(new ApiError(String(xhr.status), errorMessage(xhr.status, body), xhr.status));
       };
       const form = new FormData();
       form.append('file', file, name);
@@ -99,10 +112,11 @@ const real = {
     };
   },
   async saveMinutes(id: string, m: Minutes): Promise<{ version: number }> {
-    return (await http(`/minutes/${id}`, { method: 'PUT', ...json({ content: m }) })).json();
+    return (await http(`/meetings/${id}/minutes`, { method: 'PUT', ...json({ content: m }) })).json();
   },
   async exportMinutes(id: string, m: Minutes, fmt: ExportFormat): Promise<void> {
-    const res = await http(`/minutes/${id}/export`, { method: 'POST', ...json({ format: fmt }) });
+    // Send the current (possibly unsaved) edits so the file matches what is on screen.
+    const res = await http(`/meetings/${id}/export`, { method: 'POST', ...json({ format: fmt, content: m }) });
     downloadBlob(await res.blob(), `minutes.${fmt}`);
   },
 };

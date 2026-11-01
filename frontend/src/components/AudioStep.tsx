@@ -91,7 +91,7 @@ export default function AudioStep({ meetingId, onUploaded }: Props) {
           <div className="drop" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); pick(e.dataTransfer.files[0]); }}>
             <p>Drag a recording here, or</p>
             <input aria-label="Audio file" type="file" accept=".mp3,.wav,.m4a,.mp4,audio/*,video/mp4" onChange={(e) => pick(e.target.files?.[0])} disabled={busy} />
-            <small>MP3, WAV, M4A or MP4, up to 500 MB</small>
+            <small>MP3, WAV, M4A or MP4, up to 25 MB</small>
           </div>
           {file && <p className="muted">Selected: <b>{file.name}</b> ({(file.size / 1048576).toFixed(1)} MB)</p>}
           <div className="actions">

@@ -12,6 +12,8 @@ class MeetingDB(Base):
     title = Column(String(200), nullable=False)
     description = Column(Text, default="", nullable=False)
     status = Column(String(50), default="created", nullable=False)
+    # JSON: attendees, date/time, agenda, language entered in the web form
+    details_json = Column(Text, nullable=True)
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),

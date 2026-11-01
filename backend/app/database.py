@@ -24,3 +24,11 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def ensure_schema():
+    """Add columns introduced after an existing local ammg.db was created."""
+    with engine.begin() as conn:
+        cols = {row[1] for row in conn.exec_driver_sql("PRAGMA table_info(meetings)")}
+        if cols and "details_json" not in cols:
+            conn.exec_driver_sql("ALTER TABLE meetings ADD COLUMN details_json TEXT")

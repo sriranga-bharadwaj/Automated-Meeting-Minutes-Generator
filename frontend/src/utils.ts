@@ -1,7 +1,7 @@
 import type { Attendee, MeetingInput, Minutes } from './types';
 
 export const ALLOWED_EXT = ['mp3', 'wav', 'm4a', 'mp4'];
-export const MAX_BYTES = 500 * 1024 * 1024;
+export const MAX_BYTES = 25 * 1024 * 1024; // must match MAX_AUDIO_SIZE in backend/app/main.py
 export const LOW_CONFIDENCE = 0.6;
 
 export const isLowConfidence = (c: number) => c < LOW_CONFIDENCE;
@@ -11,7 +11,7 @@ export function validateAudio(f: { name: string; size: number }): string | null 
   const ext = f.name.split('.').pop()?.toLowerCase() ?? '';
   if (!ALLOWED_EXT.includes(ext)) return 'Unsupported file type. Use MP3, WAV, M4A or MP4.';
   if (f.size === 0) return 'This file is empty.';
-  if (f.size > MAX_BYTES) return 'File is too large. The maximum size is 500 MB.';
+  if (f.size > MAX_BYTES) return 'File is too large. The maximum size is 25 MB.';
   return null;
 }
 
