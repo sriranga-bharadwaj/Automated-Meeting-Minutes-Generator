@@ -160,11 +160,24 @@ def preprocess_audio(input_path: Path, output_path: Path) -> Path:
 # --------------------------------------------------------------------------
 # Main entry point
 # --------------------------------------------------------------------------
-def transcribe_audio(audio_path: str, language: str | None = None) -> dict:
+def attendee_prompt(attendees: list[dict] | None) -> str | None:
+    """Whisper prompt that helps it spell the attendees' names, or None without names."""
+    names = [(a.get("name") or "").strip() for a in attendees or []]
+    names = [n for n in names if n]
+    return f"Meeting attendees: {', '.join(names)}." if names else None
+
+
+def transcribe_audio(
+    audio_path: str,
+    language: str | None = None,
+    initial_prompt: str | None = None,
+) -> dict:
     """Transcribe an audio file and return text with timestamped segments.
 
     ``language`` is an optional ISO code such as "en" or "hi". When omitted,
-    Whisper detects the language automatically.
+    Whisper detects the language automatically. ``initial_prompt`` is optional
+    text that nudges Whisper towards the right spelling of names (see
+    ``attendee_prompt``).
 
     Raises:
         FileNotFoundError: the audio file does not exist.
@@ -198,6 +211,7 @@ def transcribe_audio(audio_path: str, language: str | None = None) -> dict:
                 beam_size=5,
                 vad_filter=True,
                 language=language or None,
+                initial_prompt=initial_prompt or None,
             )
 
             # `segments` is a generator: decoding happens while iterating,

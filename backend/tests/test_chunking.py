@@ -1,5 +1,10 @@
 from minutes import ActionItem, Decision
+from minutes import generator
 from minutes.generator import (
+    ActionPass,
+    ActionPassItem,
+    _extract_actions,
+    _grounded,
     chunk_transcript,
     find_start_time,
     find_line,
@@ -237,3 +242,32 @@ def test_covered_commitment_is_not_flagged():
 def test_non_commitment_lines_are_ignored():
     chunk = "[00:00:05] Can you hear me?\n[00:00:09] Yes, we can hear you.\n"
     assert _uncovered_commitment_lines(chunk, []) == []
+
+def test_task_words_must_occur_in_the_transcript():
+    assert _grounded("Finish the minutes editor", COMMIT_CHUNK)
+    assert not _grounded("Send the offer letter", COMMIT_CHUNK)
+    assert not _grounded("", COMMIT_CHUNK)
+
+
+def test_items_copied_from_the_prompt_example_are_dropped(monkeypatch):
+    fake = ActionPass(action_items=[
+        ActionPassItem(source_quote="Not yet. I'll send it before the weekend.",
+                       task="Send the offer letter", owner="Hari", deadline="before the weekend"),
+        ActionPassItem(source_quote="Great. We also need someone to update the job post",
+                       task="Update the job post"),
+        ActionPassItem(source_quote="The upload page is done, but the minutes editor",
+                       task="Finish the minutes editor", owner="Ravi", deadline="Wednesday"),
+    ])
+    monkeypatch.setattr(generator, "_chat_json", lambda *args, **kwargs: fake)
+    items = _extract_actions("model", COMMIT_CHUNK, max_retries=0)
+    assert [a.task for a in items] == ["Finish the minutes editor"]
+
+
+def test_item_with_an_imperfect_quote_is_kept_when_its_words_are_in_the_transcript(monkeypatch):
+    fake = ActionPass(action_items=[
+        ActionPassItem(source_quote="Priya will split the audio", task="Split the audio into chunks",
+                       owner="Priya"),
+    ])
+    monkeypatch.setattr(generator, "_chat_json", lambda *args, **kwargs: fake)
+    items = _extract_actions("model", COMMIT_CHUNK, max_retries=0)
+    assert [a.task for a in items] == ["Split the audio into chunks"]

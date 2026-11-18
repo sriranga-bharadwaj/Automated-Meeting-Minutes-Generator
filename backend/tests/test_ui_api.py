@@ -61,7 +61,7 @@ def isolated_db(monkeypatch):
 
     app.dependency_overrides[get_db] = override
     monkeypatch.setattr(database, "SessionLocal", Session)
-    monkeypatch.setattr(pipeline, "transcribe_audio", lambda path, language=None: FAKE_TRANSCRIPTION)
+    monkeypatch.setattr(pipeline, "transcribe_audio", lambda path, language=None, **kwargs: FAKE_TRANSCRIPTION)
     monkeypatch.setattr(pipeline, "generate_minutes", lambda text, segments=None: LLM_MINUTES)
     pipeline._JOBS.clear()
     Base.metadata.create_all(bind=engine)
@@ -143,7 +143,7 @@ def test_status_before_processing_is_queued():
 
 
 def test_failure_is_reported_and_retry_recovers(monkeypatch):
-    def broken(path, language=None):
+    def broken(path, language=None, **kwargs):
         raise AudioPreprocessingError("Could not decode audio file (bad data).")
 
     monkeypatch.setattr(pipeline, "transcribe_audio", broken)
@@ -155,14 +155,14 @@ def test_failure_is_reported_and_retry_recovers(monkeypatch):
     assert status["status"] == "FAILED"
     assert "Could not decode" in status["error"]
 
-    monkeypatch.setattr(pipeline, "transcribe_audio", lambda path, language=None: FAKE_TRANSCRIPTION)
+    monkeypatch.setattr(pipeline, "transcribe_audio", lambda path, language=None, **kwargs: FAKE_TRANSCRIPTION)
     assert client.post(f"/meetings/{meeting_id}/retry").status_code == 202
     assert client.get(f"/meetings/{meeting_id}/status").json()["status"] == "READY"
 
 
 def test_no_speech_fails_with_clear_message(monkeypatch):
     monkeypatch.setattr(
-        pipeline, "transcribe_audio", lambda path, language=None: {**FAKE_TRANSCRIPTION, "text": "  "}
+        pipeline, "transcribe_audio", lambda path, language=None, **kwargs: {**FAKE_TRANSCRIPTION, "text": "  "}
     )
     meeting_id = make_meeting()
     upload(meeting_id)
@@ -175,7 +175,7 @@ def test_no_speech_fails_with_clear_message(monkeypatch):
 def test_language_from_form_is_passed_to_transcription(monkeypatch):
     seen = {}
 
-    def spy(path, language=None):
+    def spy(path, language=None, **kwargs):
         seen["language"] = language
         return FAKE_TRANSCRIPTION
 
@@ -321,7 +321,7 @@ def test_export_invalid_format_rejected():
 def test_sync_transcribe_maps_bad_audio_to_client_errors(monkeypatch):
     import app.main as main
 
-    def broken(path, language=None):
+    def broken(path, language=None, **kwargs):
         raise AudioPreprocessingError("Could not decode audio file (bad data).")
 
     monkeypatch.setattr(main, "transcribe_audio", broken)

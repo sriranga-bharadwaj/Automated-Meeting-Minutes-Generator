@@ -65,3 +65,30 @@ def test_segments_reach_the_llm_with_timestamps(monkeypatch):
     monkeypatch.setattr("minutes.generate_minutes", fake)
     mg.generate_minutes("plain text", segments=[{"start": 14.0, "end": 19.0, "text": "Hello"}])
     assert seen["text"] == "[00:00:14] Hello"
+
+def test_llm_is_retried_once_before_falling_back(monkeypatch):
+    calls = []
+
+    def flaky(*args, **kwargs):
+        calls.append(1)
+        if len(calls) == 1:
+            raise RuntimeError("runner crashed while loading the model")
+        return {"engine": "llm"}
+
+    monkeypatch.delenv("MINUTES_ENGINE", raising=False)
+    monkeypatch.setattr(mg, "_llm_minutes", flaky)
+    assert mg.generate_minutes(TRANSCRIPT)["engine"] == "llm"
+    assert len(calls) == 2
+
+
+def test_llm_is_tried_only_twice(monkeypatch):
+    calls = []
+
+    def boom(*args, **kwargs):
+        calls.append(1)
+        raise RuntimeError("ollama is down")
+
+    monkeypatch.delenv("MINUTES_ENGINE", raising=False)
+    monkeypatch.setattr(mg, "_llm_minutes", boom)
+    assert mg.generate_minutes(TRANSCRIPT)["engine"] == "basic"
+    assert len(calls) == mg.LLM_ATTEMPTS == 2

@@ -16,7 +16,7 @@ from app.database import SessionLocal
 from app.minutes_adapter import to_ui_minutes
 from app.minutes_generator import generate_minutes
 from app.models import AudioDB, MeetingDB, MeetingMetaDB, MinutesDB, TranscriptDB
-from app.transcription import TranscriptionError, transcribe_audio
+from app.transcription import TranscriptionError, attendee_prompt, transcribe_audio
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +105,11 @@ def run_job(meeting_id: str, session_factory=None):
 
         progress = 10
         set_status(meeting_id, "TRANSCRIBING", "Converting speech to text", progress)
-        transcription = transcribe_audio(audio.file_path)
+        transcription = transcribe_audio(
+            audio.file_path,
+            language=meta.get("language") or None,
+            initial_prompt=attendee_prompt(meta.get("attendees")),
+        )
         text = transcription["text"].strip()
         if not text:
             raise ProcessingError("No speech was detected in the recording.")
