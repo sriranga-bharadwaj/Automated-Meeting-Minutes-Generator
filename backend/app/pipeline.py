@@ -19,7 +19,7 @@ from uuid import uuid4
 from app import database
 from app.minutes_generator import generate_minutes
 from app.models import AudioDB, MeetingDB, MinutesDB, TranscriptDB
-from app.transcription import TranscriptionError, transcribe_audio
+from app.transcription import TranscriptionError, attendee_prompt, transcribe_audio
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +126,11 @@ def run_job(meeting_id: str):
 
             details = load_details(meeting)
             set_job(meeting_id, "TRANSCRIBING", 20, "Converting speech to text")
-            transcription = transcribe_audio(audio.file_path, language=details.get("language") or None)
+            transcription = transcribe_audio(
+                audio.file_path,
+                language=details.get("language") or None,
+                initial_prompt=attendee_prompt(details.get("attendees")),
+            )
 
             if not transcription["text"].strip():
                 raise ValueError("No speech was detected in the audio.")
