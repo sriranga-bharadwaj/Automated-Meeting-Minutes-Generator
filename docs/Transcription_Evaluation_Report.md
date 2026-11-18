@@ -5,6 +5,8 @@
 - Model: faster-whisper 1.2.1, size `base`, device `cpu`, compute `int8` (model load took 4.1 s)
 - Target (Test Plan exit criteria): word error rate (WER) <= 15%
 
+> **Note: the audio is synthetic.** The 4 clips in `eval/recordings/` were generated with an AI voice (espeak-ng), not recorded by people. Real human speech (accents, hesitations, overlapping talk, real room noise) may score a higher word error rate than the figures below.
+
 ## Accuracy and speed
 
 **Average WER: 8.9% over 4 recording(s): PASS**
