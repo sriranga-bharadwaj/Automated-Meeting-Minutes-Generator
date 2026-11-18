@@ -24,3 +24,7 @@ node_modules/
 dist/
 coverage/
 .env.local
+
+!docs/coverage/
+!docs/coverage/**
+frontend/test-results/

@@ -61,7 +61,7 @@ export default function MeetingForm({ onCreated }: Props) {
       <label htmlFor="agenda">Agenda</label>
       <textarea id="agenda" rows={3} value={m.agenda} onChange={(e) => setM({ ...m, agenda: e.target.value })} />
 
-      <label>Attendees</label>
+      <p>Attendees</p>
       {m.attendees.map((a, i) => (
         <div className="row att" key={i}>
           <input aria-label={`Attendee ${i + 1} name`} placeholder="Name" value={a.name} onChange={(e) => setAtt(i, 'name', e.target.value)} />
