@@ -10,5 +10,5 @@ export default defineConfig({
       '/api/v1': { target: 'http://localhost:8000', rewrite: (path) => path.replace(/^\/api\/v1/, '') },
     },
   },
-  test: { environment: 'node', coverage: { provider: 'v8', include: ['src/utils.ts'], reporter: ['text', 'html'] } },
+  test: { environment: 'jsdom', exclude: ['e2e/**', 'node_modules/**'], coverage: { provider: 'v8', include: ['src/**/*.{ts,tsx}'], exclude: ['src/**/*.test.*', 'src/vite-env.d.ts', 'src/main.tsx'], reportsDirectory: '../docs/coverage/frontend', reporter: ['text', 'html', 'json-summary', 'lcov'] } },
 });

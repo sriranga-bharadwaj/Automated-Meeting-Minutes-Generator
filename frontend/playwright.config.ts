@@ -1,0 +1,2 @@
+import { defineConfig } from '@playwright/test';
+export default defineConfig({ testDir: './e2e', reporter: [['list'], ['html', { outputFolder: '../docs/browser-report', open: 'never' }]], use: { baseURL: 'http://127.0.0.1:5181' }, webServer: { reuseExistingServer: true, command: 'npm run dev -- --host 127.0.0.1 --port 5181 --strictPort', url: 'http://127.0.0.1:5181', env: { VITE_USE_MOCK: 'true' } }, projects: [{ name: 'chrome', use: { browserName: 'chromium', channel: 'chrome' } }, { name: 'edge', use: { browserName: 'chromium', channel: 'msedge' } }] });
