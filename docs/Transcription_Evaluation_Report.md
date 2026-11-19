@@ -30,7 +30,29 @@ Conditions: recorded on a phone, quiet speaking voice, about 69 seconds, one spe
 |---|---|---|---|---|---|---|---|
 | Recording.m4a | 69.0 | 13.7 | 0.20 | en | 12 | 15.4% | FAIL (target 15%) |
 
-The real recording misses the 15% target by 0.4 percentage points (162 reference words, 14 differences listed below). Only one real recording was scored. A `Recording_normalized.m4a` was not available, so no normalised version was compared.
+Same recording with the larger `small` model (`WHISPER_MODEL_SIZE=small`, CPU, int8), run on 19-Nov-2026:
+
+| Model | WER | Time taken (s) | Speed (x real time) | Result |
+|---|---|---|---|---|
+| `base` | 15.4% | 13.7 | 0.20 | FAIL |
+| `small` | 11.7% | 30.8 | 0.45 | PASS |
+
+With `small`, the remaining differences are: Karthik heard as "Kartik" (3 times), "the report" as "a project", "when" as "and", "Thursday" as "Tuesday", "internet" as "internals", two "the" as "a", "morning" dropped, and the sentence "Asha, can you update the test document?" dropped. Still one recording only, so 11.7% against the 15% target is not a wide margin. The evaluation script does not pass attendee names to the model, but the app does (`initial_prompt`).
+
+Full web UI run with `small` (attendees Ravi, Meera, Asha, Karthik; minutes engine `llm`, 112 s; `base` run took 115 s). The stored transcript spells "Karthik" correctly. Comparison with the script:
+
+| Item | `base` model | `small` model |
+|---|---|---|
+| Decisions listed (script has 2) | 0 | 2 (move the database to a faster server; keep a recorded backup video) |
+| Karthik arranges server by Tuesday | right (24-Nov) | right (24-Nov) |
+| Asha updates test document by Thursday | task "Operate the test document", deadline 24-Nov (wrong) | task right, deadline 24-Nov (wrong, Thursday heard as Tuesday) |
+| Meera prepares opening slides | task "opening sites", deadline 20-Nov (not said) | task right, deadline 20-Nov (not said) |
+| Ravi prepares demo slides by next Friday | 20-Nov | 20-Nov |
+| Karthik records backup video by Wednesday | task "(deadline: Getting a step)", no date | task right, 25-Nov (right) |
+
+With `small`: 2 of 2 decisions, 5 of 5 action items, 5 of 5 owners right, 3 of 5 deadlines right (Asha wrong, Meera's not in the script). "Next Friday" is read as 20-Nov (the day after the 19-Nov meeting); 27-Nov is also a possible reading.
+
+The real recording at `base` misses the 15% target by 0.4 percentage points (162 reference words, 14 differences listed below). Only one real recording was scored. A `Recording_normalized.m4a` was not available, so no normalised version was compared.
 
 Where the transcript differs from the script (after lower-casing and removing punctuation):
 
