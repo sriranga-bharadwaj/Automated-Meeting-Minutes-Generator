@@ -1,0 +1,68 @@
+[
+  {
+    "id": "ROLE-01",
+    "name": "First account is the administrator",
+    "pass": true,
+    "detail": "role shown: admin"
+  },
+  {
+    "id": "ROLE-02",
+    "name": "Later accounts are organizers",
+    "pass": true,
+    "detail": "role shown: organizer"
+  },
+  {
+    "id": "ROLE-03",
+    "name": "Admin sets Pat to participant",
+    "pass": true,
+    "detail": "role choices: admin, organizer, participant"
+  },
+  {
+    "id": "MEET-01",
+    "name": "Organizer creates a meeting, invites Pat, and the minutes are made",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "PART-01",
+    "name": "Participant sees the shared meeting and cannot create meetings",
+    "pass": true,
+    "detail": "New meeting buttons: 0; Delete buttons: 0; row: Title Created Status Access Budget review 11/19/2026, 5:10:19 PM Minutes ready Invited by "
+  },
+  {
+    "id": "PART-02",
+    "name": "Participant opens the minutes read only",
+    "pass": true,
+    "detail": "fields read only: true; share hidden: true; transcript read only: true; play buttons enabled: 10/10; audio position after click: 30.6s; export enabled: true"
+  },
+  {
+    "id": "PART-03",
+    "name": "Participant can export the minutes",
+    "pass": true,
+    "detail": "minutes.md"
+  },
+  {
+    "id": "API-01",
+    "name": "Server refuses writes by an invited person and meeting creation by a participant",
+    "pass": true,
+    "detail": "{\"read\":200,\"saveMinutes\":403,\"share\":403,\"del\":403,\"create\":403}"
+  },
+  {
+    "id": "STR-01",
+    "name": "An uninvited person sees nothing and gets 403",
+    "pass": true,
+    "detail": "list size 0; opening it directly -> 403"
+  },
+  {
+    "id": "ORG-01",
+    "name": "The organizer keeps full access",
+    "pass": true,
+    "detail": "save -> 200"
+  },
+  {
+    "id": "ADM-01",
+    "name": "The administrator sees every meeting",
+    "pass": true,
+    "detail": ""
+  }
+]

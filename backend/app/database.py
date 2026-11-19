@@ -34,3 +34,6 @@ def ensure_schema():
             conn.exec_driver_sql("ALTER TABLE meetings ADD COLUMN details_json TEXT")
         if cols and "owner_id" not in cols:
             conn.exec_driver_sql("ALTER TABLE meetings ADD COLUMN owner_id TEXT")
+        # The role called "user" is now "organizer" (roles are admin, organizer, participant).
+        if conn.exec_driver_sql("SELECT name FROM sqlite_master WHERE name = 'users'").first():
+            conn.exec_driver_sql("UPDATE users SET role = 'organizer' WHERE role = 'user'")

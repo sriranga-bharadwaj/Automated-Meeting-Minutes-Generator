@@ -24,6 +24,7 @@ export default function MeetingList({ user, onNew, onOpen }: Props) {
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState('');
   const admin = user.role === 'admin';
+  const canCreate = user.role !== 'participant';
 
   async function load() {
     try {
@@ -46,36 +47,46 @@ export default function MeetingList({ user, onNew, onOpen }: Props) {
     }
   }
 
+  const heading = admin ? 'All meetings' : canCreate ? 'My meetings' : 'Meetings shared with me';
+  const emptyText = canCreate
+    ? 'No meetings yet. Create one to upload a recording and get minutes.'
+    : 'No meetings yet. Meetings appear here when an organizer adds your email address as an attendee.';
+
   return (
     <div className="card">
       <div className="head">
-        <h2>{admin ? 'All meetings' : 'My meetings'}</h2>
-        <button onClick={onNew}>+ New meeting</button>
+        <h2>{heading}</h2>
+        {canCreate && <button onClick={onNew}>+ New meeting</button>}
       </div>
       {error && <div className="banner error" role="alert">{error}</div>}
       {meetings === null && !error && <p className="muted">Loading…</p>}
-      {meetings !== null && meetings.length === 0 && (
-        <p className="muted">No meetings yet. Create one to upload a recording and get minutes.</p>
-      )}
+      {meetings !== null && meetings.length === 0 && <p className="muted">{emptyText}</p>}
       {meetings !== null && meetings.length > 0 && (
         <div className="scroll">
           <table aria-label="Meetings">
             <thead>
-              <tr><th>Title</th><th>Created</th><th>Status</th>{admin && <th>Owner</th>}<th /></tr>
+              <tr><th>Title</th><th>Created</th><th>Status</th><th>{admin ? 'Owner' : 'Access'}</th><th /></tr>
             </thead>
             <tbody>
-              {meetings.map((m) => (
-                <tr key={m.id}>
-                  <td className="bold">{m.title}</td>
-                  <td className="nowrap">{formatDate(m.created_at)}</td>
-                  <td>{statusLabel(m.status)}</td>
-                  {admin && <td>{m.owner_email ?? 'Before login existed'}</td>}
-                  <td className="nowrap">
-                    <button className="ghost" onClick={() => onOpen(m)} aria-label={`Open ${m.title}`}>Open</button>{' '}
-                    <button className="ghost danger" onClick={() => remove(m)} aria-label={`Delete ${m.title}`}>Delete</button>
-                  </td>
-                </tr>
-              ))}
+              {meetings.map((m) => {
+                const owned = m.owned !== false;
+                return (
+                  <tr key={m.id}>
+                    <td className="bold">{m.title}</td>
+                    <td className="nowrap">{formatDate(m.created_at)}</td>
+                    <td>{statusLabel(m.status)}</td>
+                    <td>
+                      {admin
+                        ? (m.owner_email ?? 'Before login existed')
+                        : owned ? 'Owner' : <>Invited{m.owner_email ? <span className="muted"> by {m.owner_email}</span> : null}</>}
+                    </td>
+                    <td className="nowrap">
+                      <button className="ghost" onClick={() => onOpen(m)} aria-label={`Open ${m.title}`}>{owned ? 'Open' : 'View'}</button>{' '}
+                      {owned && <button className="ghost danger" onClick={() => remove(m)} aria-label={`Delete ${m.title}`}>Delete</button>}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

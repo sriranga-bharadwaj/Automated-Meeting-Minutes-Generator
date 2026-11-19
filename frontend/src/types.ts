@@ -1,14 +1,15 @@
 export type Status = 'QUEUED' | 'TRANSCRIBING' | 'ANALYSING' | 'READY' | 'FAILED';
 export type ExportFormat = 'docx' | 'pdf' | 'md';
 
-export type Role = 'admin' | 'user';
+export type Role = 'admin' | 'organizer' | 'participant';
 export interface User { id: string; name: string; email: string; role: Role }
 export interface MeetingSummary {
   id: string;
   title: string;
   status: string; // backend values: created, processed, ...
   created_at: string;
-  owner_email?: string | null; // only filled in for administrators
+  owner_email?: string | null; // who owns the meeting
+  owned?: boolean; // false: the person was invited and can only view it
 }
 
 export interface Attendee { name: string; email: string }
@@ -48,6 +49,7 @@ export interface ActionRow {
   due: string;
   status: 'Open' | 'Done';
   overdue: boolean;
+  can_edit: boolean; // false for items of meetings the person was only invited to
 }
 export interface JobRow {
   meeting_id: string;

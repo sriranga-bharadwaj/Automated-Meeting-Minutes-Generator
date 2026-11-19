@@ -102,7 +102,8 @@ class Meeting(BaseModel):
     description: str
     status: str
     created_at: datetime
-    owner_email: str | None = None  # filled in for administrators in the meeting list
+    owner_email: str | None = None  # who owns it (shown in the meeting list)
+    owned: bool = True              # False: the person was invited and can only view it
 
 
 @app.get("/")
@@ -163,19 +164,22 @@ def create_meeting(
 
 @app.get("/meetings", response_model=list[Meeting])
 def list_meetings(request: Request, db: Session = Depends(get_db)):
-    """A user sees their own meetings; an administrator sees everyone's (with the owner's email)."""
+    """An administrator sees every meeting. Everyone else sees the meetings they own and the ones
+    they were invited to (their email is in the attendee list); invited ones have owned=False."""
     user = auth.current_user(request)
-    query = db.query(MeetingDB).order_by(MeetingDB.created_at.desc())
-    if user is not None and user["role"] != "admin":
-        return query.filter(MeetingDB.owner_id == user["id"]).all()
     emails = {u.id: u.email for u in db.query(UserDB).all()}
-    return [
-        Meeting(
-            id=m.id, title=m.title, description=m.description, status=m.status,
-            created_at=m.created_at, owner_email=emails.get(m.owner_id),
+    out = []
+    for m in db.query(MeetingDB).order_by(MeetingDB.created_at.desc()).all():
+        owned = user is None or user["role"] == "admin" or m.owner_id == user["id"]
+        if not owned and not auth.is_invited(db, m, user["email"]):
+            continue
+        out.append(
+            Meeting(
+                id=m.id, title=m.title, description=m.description, status=m.status,
+                created_at=m.created_at, owner_email=emails.get(m.owner_id), owned=owned,
+            )
         )
-        for m in query.all()
-    ]
+    return out
 
 
 @app.get("/meetings/{meeting_id}", response_model=Meeting)

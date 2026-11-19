@@ -154,6 +154,13 @@ export const auth = {
     saveSession(data.token, data.user, data.refresh_token);
     return data.user;
   },
+  /** The signed-in user as the server knows them now (a role may have been changed by an admin). */
+  async me(): Promise<User> {
+    const user: User = await (await http('/auth/me')).json();
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    if (token) saveSession(token, user);   // keeps the refresh token that is already stored
+    return user;
+  },
   /** Ends the session on the server too, so the old tokens stop working. */
   async logout(): Promise<void> {
     const token = sessionStorage.getItem(TOKEN_KEY);

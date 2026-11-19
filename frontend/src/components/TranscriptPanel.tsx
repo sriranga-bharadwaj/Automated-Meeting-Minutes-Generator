@@ -7,10 +7,11 @@ interface Props {
   meetingId: string;
   speakers: string[];                       // attendee names offered as speaker labels
   seek: { time: number; n: number } | null; // set by the minutes: "play from here"
+  readOnly?: boolean;                       // invited people can listen and read but not edit
 }
 
 /** The recording with its transcript: click a segment to hear it, edit the text and speaker. */
-export default function TranscriptPanel({ meetingId, speakers, seek }: Props) {
+export default function TranscriptPanel({ meetingId, speakers, seek, readOnly = false }: Props) {
   const [segments, setSegments] = useState<TranscriptSegment[] | null>(null);
   const [audio, setAudio] = useState('');
   const [error, setError] = useState('');
@@ -77,17 +78,17 @@ export default function TranscriptPanel({ meetingId, speakers, seek }: Props) {
                 <button className="ghost" onClick={() => play(s.start)} aria-label={`Play from ${formatTime(s.start)}`}>▶ {formatTime(s.start)}</button>
                 <input
                   className="speaker" list="speaker-names" placeholder="Speaker" aria-label={`Speaker for segment ${i + 1}`}
-                  value={s.speaker} onChange={(e) => change(i, { speaker: e.target.value })}
+                  value={s.speaker} onChange={(e) => change(i, { speaker: e.target.value })} readOnly={readOnly}
                 />
                 <textarea
                   rows={2} aria-label={`Text of segment ${i + 1}`} value={s.text}
-                  onChange={(e) => change(i, { text: e.target.value })}
+                  onChange={(e) => change(i, { text: e.target.value })} readOnly={readOnly}
                 />
               </li>
             ))}
           </ol>
           <div className="actions left no-print">
-            <button onClick={save} disabled={saved === 'saving'}>{saved === 'saving' ? 'Saving…' : 'Save transcript'}</button>
+            {!readOnly && <button onClick={save} disabled={saved === 'saving'}>{saved === 'saving' ? 'Saving…' : 'Save transcript'}</button>}
             {saved === 'saved' && <span className="save" aria-live="polite">Transcript saved</span>}
             <span className="muted">Speaker names are typed by hand; the app does not detect speakers by voice.</span>
           </div>

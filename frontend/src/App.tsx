@@ -21,6 +21,13 @@ export default function App() {
   const [meetingId, setMeetingId] = useState('');
   const [uploaded, setUploaded] = useState(false);
   const [ready, setReady] = useState(false);
+  const [readOnly, setReadOnly] = useState(false); // opened a meeting the person was only invited to
+
+  // The saved user can be out of date (an admin may have changed the role), so ask the server.
+  useEffect(() => {
+    if (!loginOn || !currentUser()) return;
+    auth.me().then((fresh) => setUser(fresh)).catch(() => { /* a bad session is handled by api.ts */ });
+  }, [loginOn]);
 
   // api.ts announces this when the server rejects the saved token.
   useEffect(() => {
@@ -29,17 +36,18 @@ export default function App() {
     return () => window.removeEventListener('ammg-logout', onLogout);
   }, []);
 
-  const reset = () => { setStep(0); setMeetingId(''); setUploaded(false); setReady(false); };
+  const reset = () => { setStep(0); setMeetingId(''); setUploaded(false); setReady(false); setReadOnly(false); };
   const startNew = () => { reset(); setView('wizard'); };
   const created = (id: string, _input: MeetingInput) => { setMeetingId(id); setStep(1); };
   const onUploaded = () => { setUploaded(true); setStep(2); };
   const logout = () => { void auth.logout(); setUser(null); reset(); setView('list'); };
   // The tracker only knows the meeting id; its minutes are ready, so open them directly.
-  const openById = (id: string) => open({ id, title: '', status: 'processed', created_at: '' });
+  const openById = (id: string, canEdit = true) => open({ id, title: '', status: 'processed', created_at: '', owned: canEdit });
 
   // Reopen a meeting from the list at the step that matches how far it got.
   const open = (m: MeetingSummary) => {
     setMeetingId(m.id);
+    setReadOnly(m.owned === false);
     if (m.status === 'created') { setUploaded(false); setReady(false); setStep(1); }
     else if (m.status === 'processed') { setUploaded(true); setReady(true); setStep(2); }
     else { setUploaded(true); setReady(false); setStep(2); }
@@ -54,7 +62,7 @@ export default function App() {
         {loginOn && user && (
           <div className="userbar">
             <nav aria-label="Main" className="mainnav">
-              <button className={view === 'list' || view === 'wizard' ? 'ghost active' : 'ghost'} onClick={() => setView('list')}>{user.role === 'admin' ? 'All meetings' : 'My meetings'}</button>
+              <button className={view === 'list' || view === 'wizard' ? 'ghost active' : 'ghost'} onClick={() => setView('list')}>{user.role === 'admin' ? 'All meetings' : user.role === 'participant' ? 'Shared with me' : 'My meetings'}</button>
               <button className={view === 'actions' ? 'ghost active' : 'ghost'} onClick={() => setView('actions')}>Action tracker</button>
               {user.role === 'admin' && <button className={view === 'admin' ? 'ghost active' : 'ghost'} onClick={() => setView('admin')}>Admin console</button>}
             </nav>
@@ -81,7 +89,7 @@ export default function App() {
             {step === 0 && <MeetingForm onCreated={created} />}
             {step === 1 && <AudioStep meetingId={meetingId} onUploaded={onUploaded} />}
             {step === 2 && uploaded && (ready
-              ? <MinutesEditor meetingId={meetingId} onNew={startNew} />
+              ? <MinutesEditor meetingId={meetingId} readOnly={readOnly} onNew={user?.role === 'participant' ? undefined : startNew} />
               : <Processing meetingId={meetingId} onReady={() => setReady(true)} />)}
           </>
         )}

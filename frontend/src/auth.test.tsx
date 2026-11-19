@@ -15,7 +15,7 @@ vi.mock('./api', async (original) => ({
   api: { listMeetings: vi.fn(), listUsers: vi.fn(), deleteMeeting: vi.fn() },
 }));
 
-const alice: User = { id: 'u1', name: 'Alice', email: 'alice@example.com', role: 'user' };
+const alice: User = { id: 'u1', name: 'Alice', email: 'alice@example.com', role: 'organizer' };
 const admin: User = { id: 'u2', name: 'Admin', email: 'admin@example.com', role: 'admin' };
 
 beforeEach(() => { vi.clearAllMocks(); });

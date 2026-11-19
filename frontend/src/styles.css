@@ -6,6 +6,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-ap
 header{display:flex;align-items:center;gap:12px}h1{font-size:20px;margin:8px 0}h2{margin:0 0 12px}h3{margin:22px 0 8px}
 .pill{background:var(--accent);color:#fff;border-radius:99px;padding:2px 10px;font-size:12px}
 .userbar{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.userbar .who{font-weight:600}.pill.role{text-transform:capitalize}
+fieldset.plain{border:0;padding:0;margin:0;min-width:0}
 .mainnav{display:flex;gap:6px;flex-wrap:wrap}button.ghost.active{border-color:var(--accent);font-weight:600}
 .transcript{list-style:none;padding:0;margin:12px 0}.transcript li{display:grid;grid-template-columns:90px 130px 1fr;gap:8px;align-items:start;padding:6px;border-radius:8px}
 .transcript li.now{background:var(--warn)}.transcript textarea{width:100%}.transcript .speaker{width:100%}
