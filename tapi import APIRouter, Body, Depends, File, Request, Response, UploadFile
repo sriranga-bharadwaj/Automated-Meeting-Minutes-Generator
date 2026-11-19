@@ -1,0 +1,57 @@
+[1mdiff --cc backend/app/api_v1.py[m
+[1mindex 5217316,d7d284b..0000000[m
+[1m--- a/backend/app/api_v1.py[m
+[1m+++ b/backend/app/api_v1.py[m
+[36m@@@ -9,12 -10,13 +9,21 @@@[m [mfrom pathlib import Pat[m
+  from typing import Optional[m
+  from uuid import uuid4[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +from fastapi import APIRouter, Body, Depends, File, Response, UploadFile[m
+[32m++=======[m
+[32m+ from fastapi import APIRouter, Body, Depends, File, Request, UploadFile[m
+[32m++>>>>>>> origin/main[m
+  from fastapi.responses import JSONResponse[m
+  from pydantic import BaseModel, Field, ValidationError[m
+  from sqlalchemy.orm import Session[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +from app import export, jobs[m
+[32m++=======[m
+[32m+ from app import audit, auth, crypto, jobs, security, versions[m
+[32m+ from app.audio_check import AudioCheckError, check_audio_file[m
+[32m++>>>>>>> origin/main[m
+  from app.database import get_db[m
+  from app.minutes_adapter import to_ui_minutes[m
+  from app.models import AudioDB, MeetingDB, MeetingMetaDB, MinutesDB[m
+[36m@@@ -258,7 -221,8 +282,12 @@@[m [mdef get_minutes(meeting_id: str, db: Se[m
+      return _stored_ui_minutes(db, meeting, row)["minutes"][m
+  [m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +def _save_minutes_impl(meeting_id: str, body: dict, db: Session):[m
+[32m++=======[m
+[32m+ @router.put("/minutes/{meeting_id}")[m
+[32m+ def save_minutes(meeting_id: str, request: Request, body: dict = Body(...), db: Session = Depends(get_db)):[m
+[32m++>>>>>>> origin/main[m
+      content = body.get("content")[m
+      if not isinstance(content, dict):[m
+          return _error(400, "INVALID", "Some of the details are invalid.")[m
+[36m@@@ -272,15 -237,9 +302,17 @@@[m
+          current = int(stored["minutes"].get("version", 1))[m
+      except (TypeError, ValueError):[m
+          current = 1[m
+[32m +[m
+[32m +    if "version" in content and content.get("version") != current:[m
+[32m +        return _error([m
+[32m +            409,[m
+[32m +            "CONFLICT",[m
+[32m +            "Someone else changed these minutes. Reload to see the latest version.",[m
+[32m +        )[m
+[32m +[m
+      version = current + 1[m
+[32m+     user = auth.current_user(request)[m
+[32m+     versions.archive(db, meeting_id, stored["minutes"], current, user["email"] if user else None)[m
+      content["version"] = version[m
+      stored["minutes"] = content[m
+      row.content_json = json.dumps(stored, ensure_ascii=False)[m

@@ -5,6 +5,15 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-ap
 .app{max-width:960px;margin:0 auto;padding:16px}
 header{display:flex;align-items:center;gap:12px}h1{font-size:20px;margin:8px 0}h2{margin:0 0 12px}h3{margin:22px 0 8px}
 .pill{background:var(--accent);color:#fff;border-radius:99px;padding:2px 10px;font-size:12px}
+.userbar{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.userbar .who{font-weight:600}.pill.role{text-transform:capitalize}
+.mainnav{display:flex;gap:6px;flex-wrap:wrap}button.ghost.active{border-color:var(--accent);font-weight:600}
+.transcript{list-style:none;padding:0;margin:12px 0}.transcript li{display:grid;grid-template-columns:90px 130px 1fr;gap:8px;align-items:start;padding:6px;border-radius:8px}
+.transcript li.now{background:var(--warn)}.transcript textarea{width:100%}.transcript .speaker{width:100%}
+@media (max-width:640px){.transcript li{grid-template-columns:1fr}}
+.versions{list-style:none;padding:0}.versions li{display:flex;gap:10px;align-items:center;padding:4px 0}
+button.src{padding:4px 8px;font-size:12px;white-space:nowrap}.check{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.pill.overdue{background:var(--err-text)}tr.low td{background:var(--warn)}
+.login{max-width:420px;margin:24px auto}.login label{display:block;margin-top:12px}.login input{width:100%}
 .steps{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
 .steps div{flex:1;min-width:140px;padding:8px 12px;border-radius:8px;background:var(--card);border:1px solid var(--line);color:var(--muted)}
 .steps div span{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;background:var(--line);margin-right:6px;font-size:12px}

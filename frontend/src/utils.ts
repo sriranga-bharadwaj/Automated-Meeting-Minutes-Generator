@@ -5,6 +5,28 @@ export const MAX_BYTES = 25 * 1024 * 1024; // must match MAX_AUDIO_SIZE in backe
 export const LOW_CONFIDENCE = 0.6;
 
 export const isLowConfidence = (c: number) => c < LOW_CONFIDENCE;
+
+/** 83.4 seconds -> "1:23" */
+export function formatTime(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+// Same rule as the form's attendee check: something@something.something
+export const isEmail = (s: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.trim());
+
+/** Replace raw decoder/ffmpeg text from a failed job with a message a person can act on. */
+export function friendlyProcessingError(message: string | undefined): string {
+  const text = message ?? '';
+  if (!text) return 'Something went wrong while processing the recording.';
+  if (/could not decode|invalid data found|error opening input|not .*audio/i.test(text)) {
+    return 'This recording could not be read as audio. Check the file and upload a valid MP3, WAV, M4A or MP4 recording.';
+  }
+  if (/no speech/i.test(text)) {
+    return 'No speech was detected in the recording. Check the microphone and the volume, then try again.';
+  }
+  return text;
+}
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
 export function validateAudio(f: { name: string; size: number }): string | null {

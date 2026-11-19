@@ -18,6 +18,8 @@ import re
 
 logger = logging.getLogger(__name__)
 
+LLM_ATTEMPTS = 2
+
 
 def basic_minutes(transcript: str) -> dict:
     """Generate a basic structured meeting-minutes draft from a transcript."""
@@ -106,9 +108,17 @@ def generate_minutes(transcript: str, segments=None, progress=None) -> dict:
         raise ValueError("Transcript cannot be empty.")
 
     if os.getenv("MINUTES_ENGINE", "auto").lower() != "basic":
-        try:
-            return _llm_minutes(transcript, segments, progress)
-        except Exception:
-            logger.exception("LLM minutes generation failed; using the basic draft instead")
+        for attempt in range(1, LLM_ATTEMPTS + 1):
+            try:
+                return _llm_minutes(transcript, segments, progress)
+            except Exception:
+                # The model runner can crash once while loading; a second try usually works.
+                if attempt < LLM_ATTEMPTS:
+                    logger.warning(
+                        "LLM minutes generation failed (attempt %d of %d); retrying",
+                        attempt, LLM_ATTEMPTS, exc_info=True,
+                    )
+                else:
+                    logger.exception("LLM minutes generation failed; using the basic draft instead")
 
     return basic_minutes(transcript)

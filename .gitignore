@@ -27,3 +27,12 @@ node_modules/
 dist/
 coverage/
 .env.local
+
+!docs/coverage/
+!docs/coverage/**
+frontend/test-results/
+backend/.ammg_secret
+backend/.ammg_datakey
+backend/dev-cert.pem
+backend/dev-key.pem
+backend/sent_mail/

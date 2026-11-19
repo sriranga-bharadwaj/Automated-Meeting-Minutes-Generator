@@ -88,7 +88,7 @@ def run_fake_job(client, monkeypatch, meeting_id):
     segments = [{"start": 1.0, "end": 3.0, "text": "Ravi will finish it by Wednesday."}]
     monkeypatch.setattr(
         jobs, "transcribe_audio",
-        lambda path: {"text": "Ravi will finish it by Wednesday.", "language": "en", "segments": segments},
+        lambda path, **kwargs: {"text": "Ravi will finish it by Wednesday.", "language": "en", "segments": segments},
     )
     seen = {}
 
@@ -218,7 +218,7 @@ def test_job_failure_is_reported(client, monkeypatch):
     meeting_id = new_meeting_id(client)
     upload(client, meeting_id)
 
-    def boom(path):
+    def boom(path, **kwargs):
         raise TranscriptionFailedError("Could not decode audio file.")
 
     monkeypatch.setattr(jobs, "transcribe_audio", boom)
@@ -233,7 +233,7 @@ def test_job_failure_is_reported(client, monkeypatch):
 def test_recording_without_speech_fails_politely(client, monkeypatch):
     meeting_id = new_meeting_id(client)
     upload(client, meeting_id)
-    monkeypatch.setattr(jobs, "transcribe_audio", lambda path: {"text": "  ", "segments": []})
+    monkeypatch.setattr(jobs, "transcribe_audio", lambda path, **kwargs: {"text": "  ", "segments": []})
     jobs.run_job(meeting_id, session_factory=TestSession)
     body = client.get(f"/api/v1/meetings/{meeting_id}/status").json()
     assert body["status"] == "FAILED"

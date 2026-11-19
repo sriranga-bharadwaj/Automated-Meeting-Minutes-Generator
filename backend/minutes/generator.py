@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 from typing import Callable, Optional
@@ -15,6 +16,8 @@ from .prompts import (
     ACTION_SYSTEM_PROMPT,
     build_action_prompt,
 )
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_MODEL = os.environ.get("MINUTES_MODEL", "qwen2.5:7b")
 NUM_CTX = 8192        # context window we ask Ollama for (default is only 4096)
@@ -224,6 +227,15 @@ def _deadline_supported(deadline: str, window: str) -> bool:
     return len(words & present) / len(words) >= 0.6
 
 
+def _grounded(task: str, chunk: str, threshold: float = 0.5) -> bool:
+    """Do the task's words really occur in the transcript? Small models sometimes
+    copy an item from the prompt example instead of the transcript."""
+    task_words = _words(task)
+    if not task_words:
+        return False
+    return len(task_words & _words(chunk)) / len(task_words) >= threshold
+
+
 def _extract_actions(model: str, chunk: str, max_retries: int) -> list[ActionItem]:
     result = _chat_json(model, ACTION_SYSTEM_PROMPT, build_action_prompt(chunk),
                         ActionPass, max_retries)
@@ -231,6 +243,9 @@ def _extract_actions(model: str, chunk: str, max_retries: int) -> list[ActionIte
     items = []
     for a in result.action_items:
         idx = _best_line_index(a.source_quote, lines)
+        if idx is None and not _grounded(a.task, chunk):
+            logger.warning("Dropped action item not found in the transcript: %r", a.task)
+            continue                 # no matching line and unknown words: not from this transcript
         line = lines[idx] if idx is not None else None
         window = " ".join(lines[idx:idx + 2]) if idx is not None else None
 
@@ -417,6 +432,11 @@ def generate_minutes(
         minutes.participants = _dedupe_names(
             [p for p in (_clean_owner(n, chunk) for n in minutes.participants) if p]
         )
+        grounded = [a for a in minutes.action_items if _grounded(a.task, chunk)]
+        for a in minutes.action_items:
+            if a not in grounded:
+                logger.warning("Dropped action item not found in the transcript: %r", a.task)
+        minutes.action_items = grounded
         for a in minutes.action_items:
             a.owner = _clean_owner(a.owner, chunk)
 

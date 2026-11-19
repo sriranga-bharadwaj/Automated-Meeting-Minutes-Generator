@@ -1,0 +1,247 @@
+{
+  "results": [
+    {
+      "id": "quiet-TC01",
+      "name": "Create meeting with attendees Ravi, Meera, Asha",
+      "pass": true,
+      "detail": "meeting id 30022831-016d-44b8-ad3b-0b5fd942f117",
+      "shot": "system-validation/quiet-02-audio-step.png"
+    },
+    {
+      "id": "quiet-TC02",
+      "name": "Upload quiet_room.wav and show progress screen",
+      "pass": true,
+      "detail": "progress screen shown",
+      "shot": "system-validation/quiet-03-progress.png"
+    },
+    {
+      "id": "quiet-TC03",
+      "name": "Processing completes and minutes are shown",
+      "pass": true,
+      "detail": "ready after 115s",
+      "shot": "system-validation/quiet-04-minutes.png"
+    },
+    {
+      "id": "quiet-TC04",
+      "name": "Edit a field and see \"All changes saved\"",
+      "pass": true,
+      "detail": "saved indicator shown",
+      "shot": "system-validation/quiet-05-saved.png"
+    },
+    {
+      "id": "quiet-TC06",
+      "name": "Export Word (DOCX)",
+      "pass": true,
+      "detail": "minutes.docx (37261 bytes)",
+      "shot": "system-validation/quiet-06-export-docx.png"
+    },
+    {
+      "id": "quiet-TC07",
+      "name": "Export PDF",
+      "pass": true,
+      "detail": "minutes.pdf (2569 bytes)",
+      "shot": "system-validation/quiet-07-export-pdf.png"
+    },
+    {
+      "id": "quiet-TC08",
+      "name": "Export Markdown",
+      "pass": true,
+      "detail": "minutes.md (910 bytes)",
+      "shot": "system-validation/quiet-08-export-md.png"
+    },
+    {
+      "id": "CORRUPT-TC01",
+      "name": "Corrupt .mp3 shows an error and a Retry button",
+      "pass": true,
+      "detail": "message: Processing failed | Could not decode audio file (Error opening input files: Invalid data found when processing input).; Retry visible: true",
+      "shot": "system-validation/corrupt-01-error.png"
+    },
+    {
+      "id": "two-TC01",
+      "name": "Create meeting with attendees Ravi, Meera, Asha",
+      "pass": true,
+      "detail": "meeting id 2e4c238b-60fc-4e08-960c-2cce352882f4",
+      "shot": "system-validation/two-02-audio-step.png"
+    },
+    {
+      "id": "two-TC02",
+      "name": "Upload two_speakers.wav and show progress screen",
+      "pass": true,
+      "detail": "progress screen shown",
+      "shot": "system-validation/two-03-progress.png"
+    },
+    {
+      "id": "two-TC03",
+      "name": "Processing completes and minutes are shown",
+      "pass": true,
+      "detail": "ready after 99s",
+      "shot": "system-validation/two-04-minutes.png"
+    }
+  ],
+  "extracted": {
+    "quiet": {
+      "version": 1,
+      "title": "Print Review Meeting",
+      "datetime": "2026-11-18T10:00",
+      "agenda": "Demo, testing, documents",
+      "attendees": [
+        {
+          "name": "Ravi",
+          "email": "ravi@example.com"
+        },
+        {
+          "name": "Meera",
+          "email": "meera@example.com"
+        },
+        {
+          "name": "Asha",
+          "email": "asha@example.com"
+        }
+      ],
+      "topics": [
+        {
+          "id": "832e7619",
+          "title": "Demo Format",
+          "summary": "Decided to use a pre-recorded demo due to unreliable internet."
+        },
+        {
+          "id": "9821a46e",
+          "title": "Testing",
+          "summary": "Assigned tasks for fixing recording and export issues."
+        },
+        {
+          "id": "30c74228",
+          "title": "Documents",
+          "summary": "Decided to submit the test report at the end of the month and assigned coverage report collection."
+        }
+      ],
+      "decisions": [
+        {
+          "id": "a136d3ac",
+          "statement": "Use pre-recorded demo",
+          "confidence": 1
+        }
+      ],
+      "actionItems": [
+        {
+          "id": "3da24c39",
+          "task": "Confirm the room booking",
+          "owner": "Meera",
+          "due": "2026-11-25",
+          "status": "Open",
+          "confidence": 1
+        },
+        {
+          "id": "5ccbb5be",
+          "task": "Fix the long recording problem",
+          "owner": "Asha",
+          "due": "2026-11-20",
+          "status": "Open",
+          "confidence": 1
+        },
+        {
+          "id": "f880cf11",
+          "task": "Finish the export award",
+          "owner": "Ravi",
+          "due": "2026-11-23",
+          "status": "Open",
+          "confidence": 1
+        },
+        {
+          "id": "28082923",
+          "task": "Collect the coverage reports from everyone",
+          "owner": "Meera",
+          "due": "2026-11-20",
+          "status": "Open",
+          "confidence": 1
+        },
+        {
+          "id": "0e707e85",
+          "task": "Submit the test report (deadline: at the end of this month)",
+          "owner": "Unassigned",
+          "due": "",
+          "status": "Open",
+          "confidence": 1
+        }
+      ]
+    },
+    "two": {
+      "version": 1,
+      "title": "Print Review Meeting",
+      "datetime": "2026-11-18T10:00",
+      "agenda": "Demo, testing, documents",
+      "attendees": [
+        {
+          "name": "Ravi",
+          "email": "ravi@example.com"
+        },
+        {
+          "name": "Meera",
+          "email": "meera@example.com"
+        },
+        {
+          "name": "Asha",
+          "email": "asha@example.com"
+        }
+      ],
+      "topics": [
+        {
+          "id": "0313d9ee",
+          "title": "Demo",
+          "summary": "Decided to use a pre-recorded demo due to unreliable internet, and Mirror will book the seminar hall by Wednesday."
+        },
+        {
+          "id": "c58b2373",
+          "title": "Upload Feature",
+          "summary": "Asha will fix the long recording problem by Friday, and Ravi will finish the export toward the next Monday."
+        },
+        {
+          "id": "afef7bda",
+          "title": "Documents",
+          "summary": "Decided to submit the test report at the end of the month, and Mirror will collect coverage reports from everyone."
+        }
+      ],
+      "decisions": [
+        {
+          "id": "1d0d26d0",
+          "statement": "Use pre-recorded demo",
+          "confidence": 1
+        }
+      ],
+      "actionItems": [
+        {
+          "id": "61351955",
+          "task": "Book the seminar hall",
+          "owner": "Mirror",
+          "due": "2026-11-25",
+          "status": "Open",
+          "confidence": 1
+        },
+        {
+          "id": "497fd537",
+          "task": "Fix the long recording problem",
+          "owner": "Asha",
+          "due": "2026-11-20",
+          "status": "Open",
+          "confidence": 1
+        },
+        {
+          "id": "90e652e2",
+          "task": "Finish the export",
+          "owner": "Ravi",
+          "due": "2026-11-23",
+          "status": "Open",
+          "confidence": 1
+        },
+        {
+          "id": "1f3b20d4",
+          "task": "Collect the coverage reports",
+          "owner": "Mirror",
+          "due": "",
+          "status": "Open",
+          "confidence": 1
+        }
+      ]
+    }
+  }
+}

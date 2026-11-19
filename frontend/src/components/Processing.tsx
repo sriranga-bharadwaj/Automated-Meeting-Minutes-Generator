@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '../api';
 import type { JobStatus, Status } from '../types';
+import { friendlyProcessingError } from '../utils';
 
 interface Props { meetingId: string; onReady: () => void }
 const STAGES: { key: Status; label: string }[] = [
@@ -56,7 +57,7 @@ export default function Processing({ meetingId, onReady }: Props) {
       {error && <div className="banner error" role="alert">{error} <small>(will keep trying)</small></div>}
       {failed ? (
         <>
-          <div className="banner error" role="alert">{job.error ?? 'Something went wrong while processing the recording.'}</div>
+          <div className="banner error" role="alert">{friendlyProcessingError(job.error)}</div>
           <button onClick={retry}>Retry</button>
         </>
       ) : (
