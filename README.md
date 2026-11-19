@@ -51,13 +51,38 @@ The web app starts at a login page. The first account created becomes the **admi
 later account is a normal **user**.
 
 - A user sees and opens only their own meetings, and can delete them.
-- An administrator sees every meeting (with its owner), the list of users, and can delete any meeting.
-- Passwords are stored as scrypt hashes. Five wrong passwords lock an account for 15 minutes.
+- An administrator sees every meeting (with its owner), the user list, can change roles, delete any
+  meeting, and use the **Admin console** (jobs, audit log, reminders, retention).
+- Passwords are stored as salted Argon2id hashes. Five wrong passwords lock an account for 15 minutes.
+- Access tokens last 30 minutes; the page renews them with a rotating refresh token. Logging out ends the session.
 - Tokens are signed with `AMMG_SECRET_KEY`, or with a key created in `backend/.ammg_secret` (not committed).
 - Meetings created before login existed are given to the first account created.
 - `AUTH_REQUIRED=false` switches the login checks off (the tests use this). The offline demo
   (`VITE_USE_MOCK=true`) has no login.
-- `AUDIO_PREVALIDATE=false` skips the check that an uploaded file really is audio.
+
+## Features beyond the basic flow
+- **Transcript editor** with the recording: click a segment to hear it, edit the text, type a speaker name.
+- **Source links**: "▶ m:ss" next to each topic, decision and action item plays the recording from that moment.
+- **Version history**: every save is kept; restore an older version.
+- **Share by email** and **deadline reminders** need a mail server: set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`,
+  `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_TLS`. To try it without a mail account run
+  `python scripts/smtp_sink.py` (saves each mail as a `.eml` file) and start the backend with
+  `SMTP_HOST=127.0.0.1 SMTP_PORT=1025 SMTP_TLS=false`.
+- **Action tracker**: all action items across meetings, with filters and a Done checkbox.
+- **Retention**: set `RETENTION_DAYS=90` to delete older meetings automatically (hourly), or use the Admin console.
+
+## Security settings
+- **Encryption at rest**: recordings, transcripts and minutes are encrypted with AES-256-GCM. The key is `AMMG_DATA_KEY`
+  (base64 of 32 bytes) or the file `backend/.ammg_datakey`. **Back this key up: without it the data cannot be read.**
+  `ENCRYPT_AT_REST=false` stores new data unencrypted.
+- **HTTPS**: `python scripts/make_dev_cert.py`, then
+  `uvicorn app.main:app --port 8443 --ssl-keyfile dev-key.pem --ssl-certfile dev-cert.pem`. `FORCE_HTTPS=true` redirects HTTP to HTTPS.
+  Use a real certificate in production.
+- **Rate limits**: 100 requests per minute per user, 10 login attempts per minute per address (`RATE_LIMIT_ENABLED=false` to turn off).
+- **Uploads** are checked by content type, file signature and decoding; ClamAV (`clamscan`) is used when installed.
+  `AUDIO_PREVALIDATE=false` skips these checks.
+- **Audit log**: logins, shares, exports, deletes, role changes and edits are recorded in a hash chain (Admin console).
+- See `docs/Requirements_Status.md` for what is and is not done.
 
 ## Tests
     cd backend && python -m pytest        # backend (some model tests are skipped unless Ollama is running)

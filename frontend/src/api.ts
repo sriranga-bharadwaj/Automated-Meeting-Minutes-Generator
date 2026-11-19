@@ -1,4 +1,7 @@
-import type { ExportFormat, JobStatus, MeetingInput, MeetingSummary, Minutes, User } from './types';
+import type {
+  ActionRow, AuditRow, ExportFormat, JobRow, JobStatus, MeetingInput, MeetingSummary, Minutes,
+  Role, Transcript, TranscriptSegment, User, VersionInfo,
+} from './types';
 import { cleanAttendees, downloadBlob, toMarkdown, uid } from './utils';
 
 // The real FastAPI backend is the default. Set VITE_USE_MOCK=true for the offline demo.
@@ -43,8 +46,9 @@ async function toError(res: Response): Promise<ApiError> {
   return new ApiError(body.code ?? String(res.status), errorMessage(res.status, body), res.status);
 }
 
-async function http(path: string, init: RequestInit = {}): Promise<Response> {
-  const token = sessionStorage.getItem('ammg_token');
+async function http(path: string, init: RequestInit = {}, retried = false): Promise<Response> {
+  const isAuthPath = path.startsWith('/auth/');
+  const token = isAuthPath ? sessionStorage.getItem(TOKEN_KEY) : await validToken();
   const headers: Record<string, string> = { ...(init.headers as Record<string, string>) };
   if (token) headers.Authorization = `Bearer ${token}`;
   let res: Response;
@@ -54,8 +58,10 @@ async function http(path: string, init: RequestInit = {}): Promise<Response> {
     throw new ApiError('NETWORK', 'Cannot reach the server. Check that the backend is running and try again.');
   }
   if (!res.ok) {
-    // A rejected token means the session ended: forget it and let the app show the login page.
-    if (res.status === 401 && token) {
+    if (res.status === 401 && token && !isAuthPath) {
+      // The access token was rejected: try once to get a new one with the refresh token.
+      if (!retried && (await refreshSession())) return http(path, init, true);
+      // Otherwise the session has ended: forget it and let the app show the login page.
       clearSession();
       window.dispatchEvent(new Event('ammg-logout'));
     }
@@ -66,15 +72,64 @@ async function http(path: string, init: RequestInit = {}): Promise<Response> {
 
 /* --------------------------------- session --------------------------------- */
 
+const TOKEN_KEY = 'ammg_token';
+const REFRESH_KEY = 'ammg_refresh';
 const USER_KEY = 'ammg_user';
 
-export function saveSession(token: string, user: User) {
-  sessionStorage.setItem('ammg_token', token);
+export function saveSession(token: string, user: User, refreshToken?: string) {
+  sessionStorage.setItem(TOKEN_KEY, token);
   sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+  if (refreshToken) sessionStorage.setItem(REFRESH_KEY, refreshToken);
 }
 export function clearSession() {
-  sessionStorage.removeItem('ammg_token');
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_KEY);
   sessionStorage.removeItem(USER_KEY);
+}
+
+/** Seconds left before a token expires (reads the "exp" claim; 0 when it cannot be read). */
+export function secondsLeft(token: string): number {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return Number(payload.exp) - Date.now() / 1000;
+  } catch {
+    return 0;
+  }
+}
+
+let refreshing: Promise<boolean> | null = null;
+
+/** Swap the refresh token for a new token pair (the server rotates it on every use). */
+export function refreshSession(): Promise<boolean> {
+  const refresh = sessionStorage.getItem(REFRESH_KEY);
+  if (!refresh) return Promise.resolve(false);
+  if (!refreshing) {
+    refreshing = (async () => {
+      try {
+        const res = await fetch(`${BASE}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: refresh }),
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        saveSession(data.token, data.user, data.refresh_token);
+        return true;
+      } catch {
+        return false;
+      } finally {
+        refreshing = null;
+      }
+    })();
+  }
+  return refreshing;
+}
+
+/** The access token, renewed first when it has less than a minute left. */
+export async function validToken(): Promise<string | null> {
+  const token = sessionStorage.getItem(TOKEN_KEY);
+  if (token && secondsLeft(token) < 60 && (await refreshSession())) return sessionStorage.getItem(TOKEN_KEY);
+  return token;
 }
 export function currentUser(): User | null {
   try {
@@ -90,17 +145,28 @@ export const auth = {
   async login(email: string, password: string): Promise<User> {
     const res = await http('/auth/login', { method: 'POST', ...json({ email, password }) });
     const data = await res.json();
-    saveSession(data.token, data.user);
+    saveSession(data.token, data.user, data.refresh_token);
     return data.user;
   },
   async register(name: string, email: string, password: string): Promise<User> {
     const res = await http('/auth/register', { method: 'POST', ...json({ name, email, password }) });
     const data = await res.json();
-    saveSession(data.token, data.user);
+    saveSession(data.token, data.user, data.refresh_token);
     return data.user;
   },
-  logout() {
+  /** Ends the session on the server too, so the old tokens stop working. */
+  async logout(): Promise<void> {
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    const refresh = sessionStorage.getItem(REFRESH_KEY) ?? '';
     clearSession();
+    if (!token) return;
+    try {
+      await fetch(`${BASE}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ refresh_token: refresh }),
+      });
+    } catch { /* the browser forgot the tokens already */ }
   },
 };
 
@@ -121,16 +187,63 @@ const real = {
   async listUsers(): Promise<User[]> {
     return (await http('/admin/users')).json();
   },
+  async changeRole(userId: string, role: Role): Promise<User> {
+    return (await http(`/admin/users/${userId}/role`, { method: 'PUT', ...json({ role }) })).json();
+  },
+  async getTranscript(id: string): Promise<Transcript> {
+    return (await http(`/meetings/${id}/transcript`)).json();
+  },
+  async saveTranscript(id: string, segments: TranscriptSegment[]): Promise<void> {
+    await http(`/meetings/${id}/transcript`, { method: 'PUT', ...json({ segments }) });
+  },
+  /** The recording as a blob URL (the audio element cannot send the login header itself). */
+  async audioUrl(id: string): Promise<string> {
+    return URL.createObjectURL(await (await http(`/meetings/${id}/audio/stream`)).blob());
+  },
+  async listVersions(id: string): Promise<VersionInfo[]> {
+    return (await http(`/meetings/${id}/minutes/versions`)).json();
+  },
+  async restoreVersion(id: string, version: number): Promise<{ version: number }> {
+    return (await http(`/meetings/${id}/minutes/versions/${version}/restore`, { method: 'POST' })).json();
+  },
+  async shareMinutes(id: string, emails: string[], format: ExportFormat): Promise<{ sent: number }> {
+    return (await http(`/meetings/${id}/share`, { method: 'POST', ...json({ emails, format }) })).json();
+  },
+  async listActions(filter: { status?: string; owner?: string; overdue?: boolean } = {}): Promise<ActionRow[]> {
+    const q = new URLSearchParams();
+    if (filter.status) q.set('status', filter.status);
+    if (filter.owner) q.set('owner', filter.owner);
+    if (filter.overdue) q.set('overdue', 'true');
+    return (await http(`/actions${q.toString() ? `?${q}` : ''}`)).json();
+  },
+  async setActionStatus(meetingId: string, itemId: string, status: 'Open' | 'Done'): Promise<void> {
+    await http(`/meetings/${meetingId}/actions/${itemId}`, { method: 'PATCH', ...json({ status }) });
+  },
+  async adminJobs(): Promise<JobRow[]> {
+    return (await http('/admin/jobs')).json();
+  },
+  async adminAudit(): Promise<AuditRow[]> {
+    return (await http('/admin/audit?limit=100')).json();
+  },
+  async verifyAudit(): Promise<{ intact: boolean; first_bad_id: number | null }> {
+    return (await http('/admin/audit/verify')).json();
+  },
+  async runRetention(days: number): Promise<{ removed: number; days: number }> {
+    return (await http(`/admin/retention/run?days=${days}`, { method: 'POST' })).json();
+  },
+  async runReminders(): Promise<{ sent: number; skipped: number; failed: number }> {
+    return (await http('/admin/reminders/run', { method: 'POST' })).json();
+  },
   async createMeeting(m: MeetingInput): Promise<{ meetingId: string }> {
     const res = await http('/meetings', { method: 'POST', ...json({ ...m, attendees: cleanAttendees(m.attendees) }) });
     return { meetingId: (await res.json()).id };
   },
-  uploadAudio(id: string, file: Blob, name: string, onProgress: (pct: number) => void): Promise<void> {
+  async uploadAudio(id: string, file: Blob, name: string, onProgress: (pct: number) => void): Promise<void> {
+    const token = await validToken();
     // XMLHttpRequest is used because fetch cannot report upload progress.
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', `${BASE}/meetings/${id}/audio`);
-      const token = sessionStorage.getItem('ammg_token');
       if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
       xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
       xhr.onerror = () => reject(new ApiError('NETWORK', 'Upload failed. Check your connection and try again.'));
@@ -163,11 +276,11 @@ const real = {
       datetime: raw.datetime ?? '',
       agenda: raw.agenda ?? '',
       attendees: raw.attendees ?? [],
-      topics: (raw.topics ?? []).map((t: any) => ({ id: t.id ?? uid(), title: t.title ?? '', summary: t.summary ?? '' })),
-      decisions: (raw.decisions ?? []).map((d: any) => ({ id: d.id ?? uid(), statement: d.statement ?? d.text ?? '', confidence: d.confidence ?? 1 })),
+      topics: (raw.topics ?? []).map((t: any) => ({ id: t.id ?? uid(), title: t.title ?? '', summary: t.summary ?? '', source: t.source ?? null })),
+      decisions: (raw.decisions ?? []).map((d: any) => ({ id: d.id ?? uid(), statement: d.statement ?? d.text ?? '', confidence: d.confidence ?? 1, source: d.source ?? null })),
       actionItems: (raw.actionItems ?? []).map((a: any) => ({
         id: a.id ?? uid(), task: a.task ?? '', owner: a.owner || 'Unassigned', due: a.due ?? '',
-        status: a.status === 'Done' ? 'Done' : 'Open', confidence: a.confidence ?? 1,
+        status: a.status === 'Done' ? 'Done' : 'Open', confidence: a.confidence ?? 1, source: a.source ?? null,
       })),
     };
   },
@@ -219,6 +332,20 @@ const mock = {
   async listMeetings(): Promise<MeetingSummary[]> { return []; },
   async deleteMeeting(_id: string): Promise<void> {},
   async listUsers(): Promise<User[]> { return []; },
+  async changeRole(_userId: string, _role: Role): Promise<User> { throw new ApiError('DEMO', 'Not available in demo mode.'); },
+  async getTranscript(_id: string): Promise<Transcript> { throw new ApiError('DEMO', 'Not available in demo mode.'); },
+  async saveTranscript(_id: string, _segments: TranscriptSegment[]): Promise<void> {},
+  async audioUrl(_id: string): Promise<string> { throw new ApiError('DEMO', 'Not available in demo mode.'); },
+  async listVersions(_id: string): Promise<VersionInfo[]> { return []; },
+  async restoreVersion(_id: string, _version: number): Promise<{ version: number }> { throw new ApiError('DEMO', 'Not available in demo mode.'); },
+  async shareMinutes(_id: string, emails: string[], _format: ExportFormat): Promise<{ sent: number }> { return { sent: emails.length }; },
+  async listActions(_filter: { status?: string; owner?: string; overdue?: boolean } = {}): Promise<ActionRow[]> { return []; },
+  async setActionStatus(_m: string, _i: string, _s: 'Open' | 'Done'): Promise<void> {},
+  async adminJobs(): Promise<JobRow[]> { return []; },
+  async adminAudit(): Promise<AuditRow[]> { return []; },
+  async verifyAudit(): Promise<{ intact: boolean; first_bad_id: number | null }> { return { intact: true, first_bad_id: null }; },
+  async runRetention(days: number): Promise<{ removed: number; days: number }> { return { removed: 0, days }; },
+  async runReminders(): Promise<{ sent: number; skipped: number; failed: number }> { return { sent: 0, skipped: 0, failed: 0 }; },
   async createMeeting(m: MeetingInput): Promise<{ meetingId: string }> {
     await wait(500);
     const id = uid();
