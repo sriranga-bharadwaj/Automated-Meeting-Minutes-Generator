@@ -1,4 +1,5 @@
 import math
+import shutil
 import struct
 import wave
 from types import SimpleNamespace
@@ -85,7 +86,13 @@ def test_missing_ffmpeg_gives_clear_error(tmp_path, monkeypatch):
         preprocess_audio(wav, tmp_path / "out.wav")
 
 
+requires_ffmpeg = pytest.mark.skipif(
+    shutil.which("ffmpeg") is None, reason="FFmpeg is not installed"
+)
+
+
 # ------------------------------------------------------------ preprocessing
+@requires_ffmpeg
 def test_preprocess_converts_to_16k_mono(tmp_path):
     source = make_wav(tmp_path / "stereo44k.wav", rate=44100, channels=2)
     output = preprocess_audio(source, tmp_path / "out.wav")
@@ -98,6 +105,7 @@ def test_preprocess_converts_to_16k_mono(tmp_path):
 
 
 # ------------------------------------------------------------- transcription
+@requires_ffmpeg
 def test_transcribe_returns_text_and_timestamps(tmp_path, monkeypatch):
     wav = make_wav(tmp_path / "meeting.wav")
     fake = FakeModel(
@@ -123,6 +131,7 @@ def test_transcribe_returns_text_and_timestamps(tmp_path, monkeypatch):
     assert fake.received_path != str(wav)
 
 
+@requires_ffmpeg
 def test_transcribe_works_with_no_speech(tmp_path, monkeypatch):
     wav = make_wav(tmp_path / "silence.wav")
     monkeypatch.setattr(transcription, "get_model", lambda: FakeModel())
@@ -133,6 +142,7 @@ def test_transcribe_works_with_no_speech(tmp_path, monkeypatch):
     assert result["segments"] == []
 
 
+@requires_ffmpeg
 def test_model_failure_wrapped(tmp_path, monkeypatch):
     wav = make_wav(tmp_path / "meeting.wav")
     monkeypatch.setattr(

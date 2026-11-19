@@ -11,14 +11,14 @@ SAMPLES = Path(__file__).parent / "sample_transcripts"
 
 def ollama_available() -> bool:
     try:
-        ollama.list()
-        return True
+        models = [m.model for m in ollama.list().models]
+        return any("qwen2.5:7b" in m for m in models)
     except Exception:
         return False
 
 
 pytestmark = pytest.mark.skipif(
-    not ollama_available(), reason="Ollama is not running"
+    not ollama_available(), reason="Ollama or qwen2.5:7b model is not available"
 )
 
 
