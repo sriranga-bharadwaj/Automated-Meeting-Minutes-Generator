@@ -1,0 +1,252 @@
+{
+  "model": "qwen2.5:7b",
+  "generated": "2026-11-19 23:32",
+  "predictions": {
+    "meeting_1": {
+      "title": "Demo Plan Finalization",
+      "summary": "The team discussed and finalized the demo plan, assigned tasks, and decided on using a pre-recorded demo.",
+      "participants": [
+        "Ravi",
+        "Priya",
+        "Meera"
+      ],
+      "topics": [
+        {
+          "title": "Frontend Screens",
+          "summary": "The upload page is completed, but the minutes editor needs work by Wednesday.",
+          "start_time": 14.0
+        },
+        {
+          "title": "Transcription Module",
+          "summary": "The transcription module works on short clips but is slow for longer recordings; splitting audio into chunks is proposed.",
+          "start_time": 31.0
+        },
+        {
+          "title": "Demo Choice",
+          "summary": "Decided to use a pre-recorded five-minute meeting for the demo.",
+          "start_time": 48.0
+        }
+      ],
+      "decisions": [
+        {
+          "decision": "Use a pre-recorded five-minute meeting for the demo",
+          "context": "Pre-recorded is safer in case of internet failure during the demo."
+        }
+      ],
+      "action_items": [
+        {
+          "task": "Send the sample meeting recording",
+          "owner": "Meera",
+          "deadline": "Monday"
+        },
+        {
+          "task": "Write the README",
+          "owner": null,
+          "deadline": "before submission"
+        },
+        {
+          "task": "Complete the minutes editor by Wednesday",
+          "owner": "Ravi",
+          "deadline": "Wednesday"
+        },
+        {
+          "task": "Try splitting the audio into chunks",
+          "owner": "Priya",
+          "deadline": null
+        }
+      ]
+    },
+    "meeting_2": {
+      "title": "Launch Checklist Sync",
+      "summary": "The team discussed the status of the pricing page, the refund bug, and the beta user email, and assigned tasks and deadlines.",
+      "participants": [
+        "Dev",
+        "Anita"
+      ],
+      "topics": [
+        {
+          "title": "Pricing Page",
+          "summary": "The pricing page is mostly done, with placeholders for images to be replaced before the review.",
+          "start_time": 25.0
+        },
+        {
+          "title": "Refund Bug",
+          "summary": "Dev will look into the refund bug after the review.",
+          "start_time": 79.0
+        }
+      ],
+      "decisions": [
+        {
+          "decision": "Move the review to Thursday",
+          "context": "The client can't do Tuesday."
+        }
+      ],
+      "action_items": [
+        {
+          "task": "Swap out the images on the pricing page",
+          "owner": "Anita",
+          "deadline": "before the review on Thursday"
+        },
+        {
+          "task": "Look at the refund bug",
+          "owner": "Dev",
+          "deadline": "after the review on Thursday"
+        },
+        {
+          "task": "Email the beta users about the downtime",
+          "owner": null,
+          "deadline": null
+        },
+        {
+          "task": "Send the updated budget sheet",
+          "owner": "Dev",
+          "deadline": "end of day tomorrow"
+        }
+      ]
+    },
+    "meeting_3": {
+      "title": "Release Decision and Action Items",
+      "summary": "The team decided to postpone the release to next week due to an open bug and assigned tasks for fixing the bug, updating the login page design, and booking the demo room.",
+      "participants": [
+        "Anjali",
+        "Karthik",
+        "Sana"
+      ],
+      "topics": [
+        {
+          "title": "Release Date",
+          "summary": "The release was postponed to next week due to an open bug.",
+          "start_time": 4.0
+        }
+      ],
+      "decisions": [
+        {
+          "decision": "Postpone the release to next week",
+          "context": "The audio upload bug is still open, so we should postpone the release to next week."
+        }
+      ],
+      "action_items": [
+        {
+          "task": "Fix the audio upload bug",
+          "owner": "Karthik",
+          "deadline": "tomorrow"
+        },
+        {
+          "task": "Update the login page design",
+          "owner": "Anjali",
+          "deadline": "Thursday"
+        },
+        {
+          "task": "Book the demo room",
+          "owner": null,
+          "deadline": "before next Monday"
+        }
+      ]
+    },
+    "meeting_4": {
+      "title": "Project Status Update",
+      "summary": "The team discussed the database choice, assigned tasks, and noted some cleanup work for later.",
+      "participants": [
+        "Rohan",
+        "Divya",
+        "Imran"
+      ],
+      "topics": [
+        {
+          "title": "Database Choice",
+          "summary": "SQLite selected for the final version due to time constraints.",
+          "start_time": 3.0
+        }
+      ],
+      "decisions": [
+        {
+          "decision": "Use SQLite for the final version",
+          "context": "Divya: SQLite is enough for the demo, and Postgres would take too long to set up."
+        }
+      ],
+      "action_items": [
+        {
+          "task": "Write the export to Word feature",
+          "owner": "Divya",
+          "deadline": "Wednesday"
+        },
+        {
+          "task": "Test the login flow on a phone and send the bugs",
+          "owner": "Imran",
+          "deadline": "this weekend"
+        },
+        {
+          "task": "Prepare the presentation slides",
+          "owner": "Rohan",
+          "deadline": "before the review"
+        },
+        {
+          "task": "Clean up the old branches in the repo",
+          "owner": null,
+          "deadline": null
+        }
+      ]
+    },
+    "meeting_5": {
+      "title": "User Guide and Final Testing",
+      "summary": "The team discussed and assigned tasks for the user guide and final testing, and decided to record a backup video for the demo.",
+      "participants": [
+        "Neha",
+        "Arjun",
+        "Meera"
+      ],
+      "topics": [
+        {
+          "title": "User Guide",
+          "summary": "Agreed to make a short PDF and Arjun will write the first draft by Friday.",
+          "start_time": 12.0
+        },
+        {
+          "title": "Final Testing",
+          "summary": "Meera will run the final tests on the whole pipeline next week before her leave starts.",
+          "start_time": 31.0
+        },
+        {
+          "title": "Backup Video",
+          "summary": "Decided to record a backup video for the demo, but no one volunteered to do it.",
+          "start_time": 47.0
+        }
+      ],
+      "decisions": [
+        {
+          "decision": "Make the user guide a short PDF",
+          "context": null
+        }
+      ],
+      "action_items": [
+        {
+          "task": "Write the first draft of the guide",
+          "owner": "Arjun",
+          "deadline": "Friday"
+        },
+        {
+          "task": "Run the final tests on the whole pipeline",
+          "owner": "Meera",
+          "deadline": "before Meera's leave starts"
+        },
+        {
+          "task": "Send the final report to the professor",
+          "owner": "Neha",
+          "deadline": "Monday"
+        },
+        {
+          "task": "Record a backup video of the demo",
+          "owner": null,
+          "deadline": null
+        }
+      ]
+    }
+  },
+  "seconds": {
+    "meeting_1": 10.3,
+    "meeting_2": 10.6,
+    "meeting_3": 8.8,
+    "meeting_4": 9.7,
+    "meeting_5": 11.5
+  }
+}

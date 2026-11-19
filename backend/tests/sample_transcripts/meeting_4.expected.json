@@ -1,0 +1,12 @@
+{
+  "participants": ["Rohan", "Divya", "Imran"],
+  "decisions": [
+    "Use SQLite for the final version"
+  ],
+  "action_items": [
+    {"task": "Write the export to Word feature", "owner": "Divya", "deadline": "Wednesday"},
+    {"task": "Test the login flow on a phone and send the bugs to Rohan", "owner": "Imran", "deadline": "this weekend"},
+    {"task": "Prepare the presentation slides", "owner": "Rohan", "deadline": "before the review"},
+    {"task": "Clean up the old branches in the repo", "owner": null, "deadline": null}
+  ]
+}

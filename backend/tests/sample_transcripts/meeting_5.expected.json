@@ -1,0 +1,12 @@
+{
+  "participants": ["Neha", "Arjun", "Meera"],
+  "decisions": [
+    "Make the user guide as a short PDF"
+  ],
+  "action_items": [
+    {"task": "Write the first draft of the user guide", "owner": "Arjun", "deadline": "Friday"},
+    {"task": "Run the final tests on the whole pipeline", "owner": "Meera", "deadline": "next week"},
+    {"task": "Send the final report to the professor", "owner": "Neha", "deadline": "Monday"},
+    {"task": "Record a backup video of the demo", "owner": null, "deadline": null}
+  ]
+}

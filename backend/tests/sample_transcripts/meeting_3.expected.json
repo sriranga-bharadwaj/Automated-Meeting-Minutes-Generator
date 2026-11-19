@@ -1,0 +1,12 @@
+{
+  "participants": ["Anjali", "Karthik", "Sana"],
+  "decisions": [
+    "Postpone the release to next week"
+  ],
+  "action_items": [
+    {"task": "Fix the audio upload bug", "owner": "Karthik", "deadline": "tomorrow"},
+    {"task": "Update the login page design", "owner": "Anjali", "deadline": "Thursday"},
+    {"task": "Draft the test report", "owner": "Sana", "deadline": null},
+    {"task": "Book the demo room", "owner": null, "deadline": "next Monday"}
+  ]
+}
