@@ -5,14 +5,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Response, UploadFile, status
+from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Request, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
-from app import export, pipeline
+from app import auth, export, pipeline
+from app.audio_check import AudioCheckError, check_audio_file
 from app.database import Base, engine, ensure_schema, get_db
-from app.models import AudioDB, MeetingDB, MinutesDB, TranscriptDB
+from app.models import AudioDB, MeetingDB, MinutesDB, TranscriptDB, UserDB
 from app.minutes_generator import generate_minutes
 from app.transcription import (
     AudioPreprocessingError,
@@ -58,7 +59,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Checks the login token and who owns a meeting (see app/auth.py).
+app.add_middleware(auth.AuthMiddleware)
+
 app.include_router(api_v1_router)
+app.include_router(auth.router)                     # /auth/..., /admin/users
+app.include_router(auth.router, prefix="/api/v1")   # same routes under /api/v1
 
 
 class AttendeeIn(BaseModel):
@@ -84,6 +90,7 @@ class Meeting(BaseModel):
     description: str
     status: str
     created_at: datetime
+    owner_email: str | None = None  # filled in for administrators in the meeting list
 
 
 @app.get("/")
@@ -106,9 +113,11 @@ def health_check():
 )
 def create_meeting(
     payload: MeetingCreate,
+    request: Request,
     db: Session = Depends(get_db),
 ):
     title = payload.title.strip()
+    user = auth.current_user(request)
 
     if not title:
         raise HTTPException(
@@ -121,6 +130,7 @@ def create_meeting(
         title=title,
         description=payload.description.strip(),
         status="created",
+        owner_id=user["id"] if user else None,
         created_at=datetime.now(timezone.utc),
         details_json=json.dumps(
             {
@@ -140,8 +150,20 @@ def create_meeting(
 
 
 @app.get("/meetings", response_model=list[Meeting])
-def list_meetings(db: Session = Depends(get_db)):
-    return db.query(MeetingDB).order_by(MeetingDB.created_at.desc()).all()
+def list_meetings(request: Request, db: Session = Depends(get_db)):
+    """A user sees their own meetings; an administrator sees everyone's (with the owner's email)."""
+    user = auth.current_user(request)
+    query = db.query(MeetingDB).order_by(MeetingDB.created_at.desc())
+    if user is not None and user["role"] != "admin":
+        return query.filter(MeetingDB.owner_id == user["id"]).all()
+    emails = {u.id: u.email for u in db.query(UserDB).all()}
+    return [
+        Meeting(
+            id=m.id, title=m.title, description=m.description, status=m.status,
+            created_at=m.created_at, owner_email=emails.get(m.owner_id),
+        )
+        for m in query.all()
+    ]
 
 
 @app.get("/meetings/{meeting_id}", response_model=Meeting)
@@ -156,6 +178,16 @@ def get_meeting(meeting_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Meeting not found.")
 
     return meeting
+
+
+@app.delete("/meetings/{meeting_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_meeting(meeting_id: str, db: Session = Depends(get_db)):
+    """Delete a meeting and its audio. The owner or an administrator may do this."""
+    meeting = db.query(MeetingDB).filter(MeetingDB.id == meeting_id).first()
+    if meeting is None:
+        raise HTTPException(status_code=404, detail="Meeting not found.")
+    auth.delete_meeting_data(db, meeting)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.post(
@@ -207,6 +239,11 @@ async def upload_meeting_audio(
                         )
 
                     audio_file.write(chunk)
+
+            try:
+                check_audio_file(str(destination))
+            except AudioCheckError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
 
             audio_record = AudioDB(
                 id=audio_id,

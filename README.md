@@ -46,6 +46,19 @@ If you pulled an older version and see database errors, delete `backend/ammg.db`
 `POST /meetings/{id}/transcribe` is the older all-in-one endpoint that waits for the result. It is kept for scripts and tests.
 Interactive API docs are at http://localhost:8000/docs.
 
+## Login and roles
+The web app starts at a login page. The first account created becomes the **administrator**; every
+later account is a normal **user**.
+
+- A user sees and opens only their own meetings, and can delete them.
+- An administrator sees every meeting (with its owner), the list of users, and can delete any meeting.
+- Passwords are stored as scrypt hashes. Five wrong passwords lock an account for 15 minutes.
+- Tokens are signed with `AMMG_SECRET_KEY`, or with a key created in `backend/.ammg_secret` (not committed).
+- Meetings created before login existed are given to the first account created.
+- `AUTH_REQUIRED=false` switches the login checks off (the tests use this). The offline demo
+  (`VITE_USE_MOCK=true`) has no login.
+- `AUDIO_PREVALIDATE=false` skips the check that an uploaded file really is audio.
+
 ## Tests
     cd backend && python -m pytest        # backend (some model tests are skipped unless Ollama is running)
     cd frontend && npm test               # frontend unit tests

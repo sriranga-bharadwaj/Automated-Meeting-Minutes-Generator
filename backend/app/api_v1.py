@@ -10,12 +10,13 @@ from pathlib import Path
 from typing import Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Body, Depends, File, UploadFile
+from fastapi import APIRouter, Body, Depends, File, Request, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session
 
-from app import jobs
+from app import auth, jobs
+from app.audio_check import AudioCheckError, check_audio_file
 from app.database import get_db
 from app.minutes_adapter import to_ui_minutes
 from app.models import AudioDB, MeetingDB, MeetingMetaDB, MinutesDB
@@ -81,7 +82,7 @@ def _stored_ui_minutes(db: Session, meeting: MeetingDB, row: MinutesDB) -> dict:
 
 
 @router.post("/meetings", status_code=201)
-def create_meeting(body: dict = Body(...), db: Session = Depends(get_db)):
+def create_meeting(request: Request, body: dict = Body(...), db: Session = Depends(get_db)):
     try:
         data = MeetingInput.model_validate(body)
     except ValidationError:
@@ -95,7 +96,16 @@ def create_meeting(body: dict = Body(...), db: Session = Depends(get_db)):
         for a in data.attendees if a.name.strip()
     ]
     meeting_id = str(uuid4())
-    db.add(MeetingDB(id=meeting_id, title=title, description=data.agenda.strip(), status="created"))
+    user = auth.current_user(request)
+    db.add(
+        MeetingDB(
+            id=meeting_id,
+            title=title,
+            description=data.agenda.strip(),
+            status="created",
+            owner_id=user["id"] if user else None,
+        )
+    )
     db.add(
         MeetingMetaDB(
             meeting_id=meeting_id,
@@ -140,6 +150,11 @@ async def upload_audio(meeting_id: str, file: UploadFile = File(...), db: Sessio
                 out.write(chunk)
         if rejected is None and size == 0:
             rejected = _error(400, "EMPTY", "The audio file is empty.")
+        if rejected is None:
+            try:
+                check_audio_file(str(destination))
+            except AudioCheckError as exc:
+                rejected = _error(400, "NOT_AUDIO", str(exc))
         if rejected is not None:
             destination.unlink(missing_ok=True)
             return rejected

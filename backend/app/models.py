@@ -14,6 +14,25 @@ class MeetingDB(Base):
     status = Column(String(50), default="created", nullable=False)
     # JSON: attendees, date/time, agenda, language entered in the web form
     details_json = Column(Text, nullable=True)
+    # The user who created the meeting (None for meetings created before login existed)
+    owner_id = Column(String, ForeignKey("users.id"), nullable=True, index=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+
+class UserDB(Base):
+    __tablename__ = "users"
+
+    id = Column(String, primary_key=True, index=True)
+    email = Column(String(320), unique=True, nullable=False, index=True)
+    name = Column(String(200), nullable=False)
+    password_hash = Column(String, nullable=False)
+    role = Column(String(20), default="user", nullable=False)  # "admin" or "user"
+    failed_attempts = Column(Integer, default=0, nullable=False)
+    locked_until = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
