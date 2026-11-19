@@ -2,6 +2,8 @@
 
 Used to produce `docs/Transcription_Evaluation_Report.md` (accuracy, speed and bad-input checks).
 
+> **Note: the audio is synthetic.** The 4 clips currently in `eval/recordings/` were generated with an AI voice (espeak-ng), not recorded by people. Real speech may score a higher word error rate than the reported figures.
+
 ## 1. Record 3 to 5 short recordings (1 to 3 minutes each)
 Write what you will say first, then read it aloud, so you have an exact reference text.
 Use different conditions, for example:
