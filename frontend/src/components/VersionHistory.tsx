@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { api, ApiError } from '../api';
 import type { VersionInfo } from '../types';
 
-interface Props { meetingId: string; refreshKey: number; onRestored: () => void }
+interface Props { meetingId: string; refreshKey: number; onRestored: () => void; readOnly?: boolean }
 
-/** Earlier saved versions of the minutes. Restoring one saves it as the newest version. */
-export default function VersionHistory({ meetingId, refreshKey, onRestored }: Props) {
+/** Earlier saved versions of the minutes. Restoring one saves it as the newest version
+ *  (people who were only invited to the meeting can look at the list but not restore). */
+export default function VersionHistory({ meetingId, refreshKey, onRestored, readOnly = false }: Props) {
   const [versions, setVersions] = useState<VersionInfo[] | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState<number | null>(null);
@@ -45,7 +46,7 @@ export default function VersionHistory({ meetingId, refreshKey, onRestored }: Pr
             <li key={v.version}>
               <span className="bold">Version {v.version}</span>{' '}
               {v.current ? <span className="pill">current</span> : <span className="muted">{v.saved_at ? new Date(v.saved_at).toLocaleString() : ''} {v.saved_by ? `· ${v.saved_by}` : ''}</span>}
-              {!v.current && (
+              {!v.current && !readOnly && (
                 <button className="ghost" disabled={busy !== null} onClick={() => restore(v)} aria-label={`Restore version ${v.version}`}>
                   {busy === v.version ? 'Restoring…' : 'Restore'}
                 </button>

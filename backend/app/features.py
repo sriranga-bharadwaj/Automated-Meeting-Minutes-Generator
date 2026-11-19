@@ -296,11 +296,14 @@ class ActionStatusIn(BaseModel):
     status: str
 
 
-def _accessible_meetings(db: Session, user: Optional[dict]) -> list[MeetingDB]:
-    query = db.query(MeetingDB).order_by(MeetingDB.created_at.desc())
-    if user is not None and user["role"] != "admin":
-        query = query.filter(MeetingDB.owner_id == user["id"])
-    return query.all()
+def _accessible_meetings(db: Session, user: Optional[dict]) -> list[tuple[MeetingDB, bool]]:
+    """(meeting, can_edit): the meetings a person owns (editable) and was invited to (read only)."""
+    out = []
+    for meeting in db.query(MeetingDB).order_by(MeetingDB.created_at.desc()).all():
+        editable = user is None or user["role"] == "admin" or meeting.owner_id == user["id"]
+        if editable or auth.is_invited(db, meeting, user["email"]):
+            out.append((meeting, editable))
+    return out
 
 
 @router.get("/actions")
@@ -314,7 +317,7 @@ def list_actions(
     """Action items from the latest minutes of every meeting the person may see."""
     today = date.today().isoformat()
     rows = []
-    for meeting in _accessible_meetings(db, auth.current_user(request)):
+    for meeting, can_edit in _accessible_meetings(db, auth.current_user(request)):
         found = ui_minutes(db, meeting)
         if found is None:
             continue
@@ -330,6 +333,7 @@ def list_actions(
                     "due": item.get("due", ""),
                     "status": item.get("status", "Open"),
                     "overdue": is_overdue,
+                    "can_edit": can_edit,
                 }
             )
     if status:

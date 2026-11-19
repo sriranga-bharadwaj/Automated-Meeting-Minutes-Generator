@@ -11,7 +11,7 @@ Status of every functional (AMG-F), security (AMG-SR) and non-functional (AMG-NF
 | ID | Requirement | Status | Evidence and notes |
 |---|---|---|---|
 | F-001 | Register and log in | Done | Login page, Argon2id passwords. **Not done:** email verification (TC-Auth-01 asks for it). |
-| F-002 | Role-based access | Done | Admin and user roles; a user gets 403 for another user's meeting (`test_auth.py`, live check). |
+| F-002 | Role-based access | Done | Three roles: **Admin** (everything), **Organizer** (creates meetings, full access to their own, reads meetings they are invited to), **Participant** (cannot create meetings, reads meetings they are invited to). "Invited" means the person's email is in the meeting's attendee list (case does not matter). Invited people can read, play the recording and export, but the server refuses changes, sharing, deletion and re-processing (HTTP 403). Anyone else gets 403. First account is admin, later ones organizers; an admin changes roles in the Admin console. Evidence: `backend/tests/test_roles.py`, `test_auth.py`, live check `docs/roles-validation/` (11 of 11). Note: a role change shows on a person's screen the next time the page loads. The old role name "user" is renamed "organizer" in existing databases. |
 | F-003 | Account lockout | Done | 5 wrong passwords lock for 15 minutes; the lock is recorded in the audit log. |
 | F-010 | Create meeting | Done | Form with title, date, agenda, language and attendees. |
 | F-011 | Upload recording | Done | MP3, WAV, M4A, MP4 (and OGG, WEBM); default limit 500 MB on the `/api/v1` route, 25 MB on the older route the web UI uses. |

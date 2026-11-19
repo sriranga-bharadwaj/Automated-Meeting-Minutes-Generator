@@ -49,11 +49,11 @@ def make_meeting(client, hdrs, title="Weekly"):
     return res.json()["id"]
 
 
-def test_first_account_is_admin_and_later_ones_are_users(client):
+def test_first_account_is_admin_and_later_ones_are_organizers(client):
     first = register(client, "admin@example.com", "Admin")
     second = register(client, "user@example.com", "User")
     assert first.status_code == 201 and first.json()["user"]["role"] == "admin"
-    assert second.json()["user"]["role"] == "user"
+    assert second.json()["user"]["role"] == "organizer"
 
 
 def test_register_rejects_bad_input_and_duplicates(client):

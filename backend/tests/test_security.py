@@ -202,7 +202,9 @@ def test_role_change_needs_admin_and_keeps_one_admin(env):
     uid = user["user"]["id"]
     assert client.put(f"/admin/users/{uid}/role", json={"role": "admin"}, headers=bearer(user)).status_code == 403
     only_admin = admin["user"]["id"]
-    assert client.put(f"/admin/users/{only_admin}/role", json={"role": "user"}, headers=bearer(admin)).status_code == 409
+    for demotion in ("organizer", "participant"):
+        assert client.put(f"/admin/users/{only_admin}/role", json={"role": demotion}, headers=bearer(admin)).status_code == 409
+    assert client.put(f"/admin/users/{uid}/role", json={"role": "user"}, headers=bearer(admin)).status_code == 400   # old name
     assert client.put(f"/admin/users/{uid}/role", json={"role": "bogus"}, headers=bearer(admin)).status_code == 400
     assert client.put(f"/admin/users/{uid}/role", json={"role": "admin"}, headers=bearer(admin)).json()["role"] == "admin"
 

@@ -83,7 +83,7 @@ export default function AdminConsole({ me }: Props) {
                 <td>{u.name}</td><td>{u.email}</td>
                 <td>
                   <select aria-label={`Role of ${u.email}`} value={u.role} onChange={(e) => setRole(u, e.target.value as Role)} disabled={u.id === me.id}>
-                    <option value="user">user</option><option value="admin">admin</option>
+                    <option value="admin">admin</option><option value="organizer">organizer</option><option value="participant">participant</option>
                   </select>
                 </td>
               </tr>

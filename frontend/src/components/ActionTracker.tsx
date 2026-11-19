@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError } from '../api';
 import type { ActionRow } from '../types';
 
-interface Props { onOpenMeeting: (meetingId: string) => void }
+interface Props { onOpenMeeting: (meetingId: string, canEdit: boolean) => void }
 
 /** Action items from all meetings in one list, with filters and a Done checkbox. */
 export default function ActionTracker({ onOpenMeeting }: Props) {
@@ -55,11 +55,16 @@ export default function ActionTracker({ onOpenMeeting }: Props) {
             <tbody>
               {rows.map((r) => (
                 <tr key={`${r.meeting_id}-${r.id}`} className={r.overdue ? 'low' : ''}>
-                  <td><input type="checkbox" aria-label={`Mark "${r.task}" done`} checked={r.status === 'Done'} onChange={() => toggle(r)} /></td>
+                  <td>
+                    <input
+                      type="checkbox" aria-label={`Mark "${r.task}" done`} checked={r.status === 'Done'} onChange={() => toggle(r)}
+                      disabled={!r.can_edit} title={r.can_edit ? undefined : 'You were invited to this meeting and can only view it'}
+                    />
+                  </td>
                   <td className={r.status === 'Done' ? 'muted' : 'bold'}>{r.task}</td>
                   <td>{r.owner}</td>
                   <td className="nowrap">{r.due || '—'} {r.overdue && <span className="pill overdue">overdue</span>}</td>
-                  <td><button className="ghost" onClick={() => onOpenMeeting(r.meeting_id)}>{r.meeting_title}</button></td>
+                  <td><button className="ghost" onClick={() => onOpenMeeting(r.meeting_id, r.can_edit)}>{r.meeting_title}</button></td>
                 </tr>
               ))}
             </tbody>

@@ -5,9 +5,12 @@
 - Access token: signed HS256 JWT that expires after 30 minutes. Refresh token: random value
   kept only as a hash in the ``sessions`` table; it rotates on every use, and logout (or a
   reused old refresh token) revokes the session, which also kills its access tokens (AMG-SR-004).
-- Roles: "user" sees and changes only their own meetings; "admin" sees all meetings, can
-  delete any meeting, list users, change roles and see jobs and the audit log. The first
-  account registered becomes admin.
+- Roles (AMG-F-002): "admin" sees and changes everything and runs the admin console;
+  "organizer" creates meetings, has full access to their own meetings and can read meetings
+  they are invited to; "participant" cannot create meetings and can only read meetings they
+  are invited to. Invited means the person's email is in the meeting's attendee list. Invited
+  people can read, play the recording and export, but not change, share or delete.
+  The first account registered becomes admin, later ones organizers (an admin can change that).
 - Five wrong passwords lock an account for 15 minutes (AMG-F-003); login is also limited
   to 10 attempts per minute per address (AMG-SR-007).
 - Login, logout, role changes and failures go to the audit log (AMG-SR-008).
@@ -42,6 +45,7 @@ from app.models import (
     SessionDB, TranscriptDB, UserDB,
 )
 
+ROLES = ("admin", "organizer", "participant")
 TOKEN_LIFETIME_SECONDS = 30 * 60
 REFRESH_LIFETIME_DAYS = 7
 MAX_FAILED_ATTEMPTS = 5
@@ -172,6 +176,24 @@ def _deny(status: int, code: str, message: str) -> JSONResponse:
     return JSONResponse(status_code=status, content={"code": code, "message": message, "detail": message})
 
 
+def attendee_emails(db: Session, meeting: MeetingDB) -> set[str]:
+    """Lower-case emails in the meeting's attendee list (from either way meetings are created)."""
+    found: list[dict] = []
+    for raw in (meeting.details_json, getattr(db.query(MeetingMetaDB).filter(MeetingMetaDB.meeting_id == meeting.id).first(), "meta_json", None)):
+        try:
+            found += (json.loads(raw).get("attendees") or []) if raw else []
+        except (json.JSONDecodeError, AttributeError):
+            continue
+    return {(a.get("email") or "").strip().lower() for a in found if (a.get("email") or "").strip()}
+
+
+def is_invited(db: Session, meeting: MeetingDB, email: str) -> bool:
+    return email.strip().lower() in attendee_emails(db, meeting)
+
+
+CREATE_PATH = re.compile(r"^(?:/api/v1)?/meetings/?$")
+
+
 class AuthMiddleware(BaseHTTPMiddleware):
     """Rate limits, checks the token and session, and checks the owner of per-meeting requests."""
 
@@ -211,12 +233,20 @@ class AuthMiddleware(BaseHTTPMiddleware):
             if path.startswith(("/admin/", "/api/v1/admin/")) and user.role != "admin":
                 return _deny(403, "FORBIDDEN", "Only administrators can do this.")
 
+            if user.role == "participant" and request.method == "POST" and CREATE_PATH.match(path):
+                return _deny(403, "FORBIDDEN", "Participants can open meetings they are invited to but cannot create meetings.")
+
             match = MEETING_PATH.match(path)
             if match and user.role != "admin":
                 meeting = db.query(MeetingDB).filter(MeetingDB.id == match.group(1)).first()
                 # A missing meeting falls through so the route answers 404 itself.
                 if meeting is not None and meeting.owner_id != user.id:
-                    return _deny(403, "FORBIDDEN", "You do not have access to this meeting.")
+                    if not is_invited(db, meeting, user.email):
+                        return _deny(403, "FORBIDDEN", "You do not have access to this meeting.")
+                    # Invited people may read, play the recording and export; nothing else.
+                    reading = request.method in {"GET", "HEAD"} or path.endswith("/export")
+                    if not reading:
+                        return _deny(403, "FORBIDDEN", "You were invited to this meeting and can only view it.")
         finally:
             session_source.close()
         return await call_next(request)
@@ -291,7 +321,7 @@ def register(body: RegisterIn, db: Session = Depends(get_db)):
         email=email,
         name=name,
         password_hash=hash_password(body.password),
-        role="admin" if first_user else "user",
+        role="admin" if first_user else "organizer",
     )
     db.add(user)
     # Meetings made before login existed belong to the first account.
@@ -396,13 +426,13 @@ def list_users(db: Session = Depends(get_db)):
 
 @router.put("/admin/users/{user_id}/role")
 def change_role(user_id: str, body: RoleIn, request: Request, db: Session = Depends(get_db)):
-    """Administrators only: make someone an admin or a normal user."""
-    if body.role not in {"admin", "user"}:
-        return _deny(400, "INVALID", "The role must be admin or user.")
+    """Administrators only: make someone an admin, organizer or participant."""
+    if body.role not in ROLES:
+        return _deny(400, "INVALID", "The role must be admin, organizer or participant.")
     target = db.query(UserDB).filter(UserDB.id == user_id).first()
     if target is None:
         return _deny(404, "NOT_FOUND", "User not found.")
-    if target.role == "admin" and body.role == "user":
+    if target.role == "admin" and body.role != "admin":
         if db.query(UserDB).filter(UserDB.role == "admin").count() <= 1:
             return _deny(409, "LAST_ADMIN", "There must be at least one administrator.")
     old = target.role

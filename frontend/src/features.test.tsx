@@ -22,7 +22,7 @@ vi.mock('./api', async (original) => ({
 }));
 
 const admin: User = { id: 'u1', name: 'Admin', email: 'admin@example.com', role: 'admin' };
-const ravi: User = { id: 'u2', name: 'Ravi', email: 'ravi@example.com', role: 'user' };
+const ravi: User = { id: 'u2', name: 'Ravi', email: 'ravi@example.com', role: 'organizer' };
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -31,8 +31,8 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 const rows = [
-  { meeting_id: 'm1', meeting_title: 'Weekly', id: 'a1', task: 'Arrange the server', owner: 'Karthik', due: '2026-11-10', status: 'Open' as const, overdue: true },
-  { meeting_id: 'm1', meeting_title: 'Weekly', id: 'a2', task: 'Update the test document', owner: 'Asha', due: '', status: 'Done' as const, overdue: false },
+  { meeting_id: 'm1', meeting_title: 'Weekly', id: 'a1', task: 'Arrange the server', owner: 'Karthik', due: '2026-11-10', status: 'Open' as const, overdue: true, can_edit: true },
+  { meeting_id: 'm1', meeting_title: 'Weekly', id: 'a2', task: 'Update the test document', owner: 'Asha', due: '', status: 'Done' as const, overdue: false, can_edit: true },
 ];
 
 describe('ActionTracker', () => {
@@ -57,7 +57,7 @@ describe('ActionTracker', () => {
     await userEvent.click(screen.getByLabelText('Overdue only'));
     await waitFor(() => expect(api.listActions).toHaveBeenLastCalledWith({ status: 'Open', owner: '', overdue: true }));
     await userEvent.click(screen.getAllByRole('button', { name: 'Weekly' })[0]);
-    expect(open).toHaveBeenCalledWith('m1');
+    expect(open).toHaveBeenCalledWith('m1', true);
   });
 
   it('shows an empty state', async () => {

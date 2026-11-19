@@ -50,9 +50,13 @@ Interactive API docs are at http://localhost:8000/docs.
 The web app starts at a login page. The first account created becomes the **administrator**; every
 later account is a normal **user**.
 
-- A user sees and opens only their own meetings, and can delete them.
-- An administrator sees every meeting (with its owner), the user list, can change roles, delete any
-  meeting, and use the **Admin console** (jobs, audit log, reminders, retention).
+- There are three roles. **Admin** sees every meeting, can change roles and uses the **Admin console**
+  (jobs, audit log, reminders, retention). **Organizer** creates meetings and has full access to their own.
+  **Participant** cannot create meetings.
+- Organizers and participants can also open meetings they were **invited** to (their email is in the meeting's
+  attendee list). Invited people can read the minutes, play the recording and export, but cannot change, share or
+  delete. Anyone else gets "no access" (HTTP 403).
+- The first account created is the admin, later accounts are organizers; an admin changes roles in the Admin console.
 - Passwords are stored as salted Argon2id hashes. Five wrong passwords lock an account for 15 minutes.
 - Access tokens last 30 minutes; the page renews them with a rotating refresh token. Logging out ends the session.
 - Tokens are signed with `AMMG_SECRET_KEY`, or with a key created in `backend/.ammg_secret` (not committed).

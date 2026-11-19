@@ -6,7 +6,11 @@ import ShareMinutes from './ShareMinutes';
 import TranscriptPanel from './TranscriptPanel';
 import VersionHistory from './VersionHistory';
 
-interface Props { meetingId: string; onNew: () => void }
+interface Props {
+  meetingId: string;
+  onNew?: () => void;      // missing for participants, who cannot create meetings
+  readOnly?: boolean;      // the person was invited to this meeting and can only view it
+}
 type Save = 'idle' | 'saving' | 'saved' | 'error';
 
 /** "▶ 1:23": plays the recording from where this item was said (AMG-F-042). */
@@ -19,16 +23,16 @@ function Src({ source, play }: { source?: Source | null; play: (t: number) => vo
   );
 }
 
-function Move<T>({ list, i, set }: { list: T[]; i: number; set: (l: T[]) => void }) {
+function Move<T>({ list, i, set, locked = false }: { list: T[]; i: number; set: (l: T[]) => void; locked?: boolean }) {
   return (
     <span className="mv">
-      <button className="ghost" aria-label="Move up" disabled={i === 0} onClick={() => set(moveItem(list, i, -1))}>↑</button>
-      <button className="ghost" aria-label="Move down" disabled={i === list.length - 1} onClick={() => set(moveItem(list, i, 1))}>↓</button>
+      <button className="ghost" aria-label="Move up" disabled={locked || i === 0} onClick={() => set(moveItem(list, i, -1))}>↑</button>
+      <button className="ghost" aria-label="Move down" disabled={locked || i === list.length - 1} onClick={() => set(moveItem(list, i, 1))}>↓</button>
     </span>
   );
 }
 
-export default function MinutesEditor({ meetingId, onNew }: Props) {
+export default function MinutesEditor({ meetingId, onNew, readOnly = false }: Props) {
   const [m, setM] = useState<Minutes | null>(null);
   const [loadError, setLoadError] = useState('');
   const [save, setSave] = useState<Save>('idle');
@@ -110,31 +114,37 @@ export default function MinutesEditor({ meetingId, onNew }: Props) {
       {saveError && <div className="banner error" role="alert">{saveError} <button className="ghost" onClick={() => edit((x) => ({ ...x }))}>Retry save</button></div>}
       {low > 0 && <div className="banner warn">{low} item{low > 1 ? 's' : ''} below 60% confidence are highlighted. Please review before sharing.</div>}
 
+      {readOnly && (
+        <div className="banner warn" role="status">
+          You were invited to this meeting. You can read the minutes, play the recording and export them, but not change them.
+        </div>
+      )}
+
       <h3>Key discussions</h3>
       {m.topics.map((t, i) => (
         <div className="item" key={t.id}>
           <div className="grow">
-            <input aria-label="Topic title" className="bold" value={t.title} onChange={(e) => edit((x) => ({ ...x, topics: x.topics.map((y) => (y.id === t.id ? { ...y, title: e.target.value } : y)) }))} />
-            <textarea aria-label="Topic summary" rows={2} value={t.summary} onChange={(e) => edit((x) => ({ ...x, topics: x.topics.map((y) => (y.id === t.id ? { ...y, summary: e.target.value } : y)) }))} />
+            <input aria-label="Topic title" className="bold" readOnly={readOnly} value={t.title} onChange={(e) => edit((x) => ({ ...x, topics: x.topics.map((y) => (y.id === t.id ? { ...y, title: e.target.value } : y)) }))} />
+            <textarea aria-label="Topic summary" rows={2} readOnly={readOnly} value={t.summary} onChange={(e) => edit((x) => ({ ...x, topics: x.topics.map((y) => (y.id === t.id ? { ...y, summary: e.target.value } : y)) }))} />
           </div>
           <Src source={t.source} play={play} />
-          <Move list={m.topics} i={i} set={(l) => edit((x) => ({ ...x, topics: l }))} />
-          <button className="ghost danger" aria-label="Delete topic" onClick={() => edit((x) => ({ ...x, topics: x.topics.filter((y) => y.id !== t.id) }))}>✕</button>
+          <Move list={m.topics} i={i} locked={readOnly} set={(l) => edit((x) => ({ ...x, topics: l }))} />
+          <button className="ghost danger" aria-label="Delete topic" disabled={readOnly} onClick={() => edit((x) => ({ ...x, topics: x.topics.filter((y) => y.id !== t.id) }))}>✕</button>
         </div>
       ))}
-      <button className="ghost" onClick={() => edit((x) => ({ ...x, topics: [...x.topics, { id: uid(), title: '', summary: '' }] }))}>+ Add topic</button>
+      <button className="ghost" disabled={readOnly} onClick={() => edit((x) => ({ ...x, topics: [...x.topics, { id: uid(), title: '', summary: '' }] }))}>+ Add topic</button>
 
       <h3>Decisions</h3>
       {m.decisions.map((d, i) => (
         <div className={`item ${isLowConfidence(d.confidence) ? 'low' : ''}`} key={d.id}>
-          <input className="grow" aria-label="Decision" value={d.statement} onChange={(e) => edit((x) => ({ ...x, decisions: x.decisions.map((y) => (y.id === d.id ? { ...y, statement: e.target.value } : y)) }))} />
+          <input className="grow" aria-label="Decision" readOnly={readOnly} value={d.statement} onChange={(e) => edit((x) => ({ ...x, decisions: x.decisions.map((y) => (y.id === d.id ? { ...y, statement: e.target.value } : y)) }))} />
           <span className="conf" title="Model confidence">{Math.round(d.confidence * 100)}%</span>
           <Src source={d.source} play={play} />
-          <Move list={m.decisions} i={i} set={(l) => edit((x) => ({ ...x, decisions: l }))} />
-          <button className="ghost danger" aria-label="Delete decision" onClick={() => edit((x) => ({ ...x, decisions: x.decisions.filter((y) => y.id !== d.id) }))}>✕</button>
+          <Move list={m.decisions} i={i} locked={readOnly} set={(l) => edit((x) => ({ ...x, decisions: l }))} />
+          <button className="ghost danger" aria-label="Delete decision" disabled={readOnly} onClick={() => edit((x) => ({ ...x, decisions: x.decisions.filter((y) => y.id !== d.id) }))}>✕</button>
         </div>
       ))}
-      <button className="ghost" onClick={() => edit((x) => ({ ...x, decisions: [...x.decisions, { id: uid(), statement: '', confidence: 1 }] }))}>+ Add decision</button>
+      <button className="ghost" disabled={readOnly} onClick={() => edit((x) => ({ ...x, decisions: [...x.decisions, { id: uid(), statement: '', confidence: 1 }] }))}>+ Add decision</button>
 
       <h3>Action items</h3>
       <div className="scroll">
@@ -145,24 +155,24 @@ export default function MinutesEditor({ meetingId, onNew }: Props) {
               const up = (patch: Partial<typeof a>) => edit((x) => ({ ...x, actionItems: x.actionItems.map((y) => (y.id === a.id ? { ...y, ...patch } : y)) }));
               return (
                 <tr key={a.id} className={isLowConfidence(a.confidence) ? 'low' : ''}>
-                  <td><input aria-label="Task" value={a.task} onChange={(e) => up({ task: e.target.value })} /></td>
+                  <td><input aria-label="Task" readOnly={readOnly} value={a.task} onChange={(e) => up({ task: e.target.value })} /></td>
                   <td>
-                    <select aria-label="Owner" value={a.owner} onChange={(e) => up({ owner: e.target.value })}>
+                    <select aria-label="Owner" disabled={readOnly} value={a.owner} onChange={(e) => up({ owner: e.target.value })}>
                       {!owners.includes(a.owner) && <option>{a.owner}</option>}
                       {owners.map((o) => <option key={o}>{o}</option>)}
                     </select>
                   </td>
-                  <td><input aria-label="Deadline" type="date" value={a.due} onChange={(e) => up({ due: e.target.value })} /></td>
+                  <td><input aria-label="Deadline" type="date" readOnly={readOnly} disabled={readOnly} value={a.due} onChange={(e) => up({ due: e.target.value })} /></td>
                   <td>
-                    <select aria-label="Status" value={a.status} onChange={(e) => up({ status: e.target.value as 'Open' | 'Done' })}>
+                    <select aria-label="Status" disabled={readOnly} value={a.status} onChange={(e) => up({ status: e.target.value as 'Open' | 'Done' })}>
                       <option>Open</option><option>Done</option>
                     </select>
                   </td>
                   <td><span className="conf" title={isLowConfidence(a.confidence) ? 'Low confidence, please review' : 'Model confidence'}>{isLowConfidence(a.confidence) ? '⚠ ' : ''}{Math.round(a.confidence * 100)}%</span></td>
                   <td className="nowrap">
                     <Src source={a.source} play={play} />
-                    <Move list={m.actionItems} i={i} set={(l) => edit((x) => ({ ...x, actionItems: l }))} />
-                    <button className="ghost danger" aria-label="Delete action item" onClick={() => edit((x) => ({ ...x, actionItems: x.actionItems.filter((y) => y.id !== a.id) }))}>✕</button>
+                    <Move list={m.actionItems} i={i} locked={readOnly} set={(l) => edit((x) => ({ ...x, actionItems: l }))} />
+                    <button className="ghost danger" aria-label="Delete action item" disabled={readOnly} onClick={() => edit((x) => ({ ...x, actionItems: x.actionItems.filter((y) => y.id !== a.id) }))}>✕</button>
                   </td>
                 </tr>
               );
@@ -170,7 +180,7 @@ export default function MinutesEditor({ meetingId, onNew }: Props) {
           </tbody>
         </table>
       </div>
-      <button className="ghost" onClick={() => edit((x) => ({ ...x, actionItems: [...x.actionItems, { id: uid(), task: '', owner: 'Unassigned', due: '', status: 'Open', confidence: 1 }] }))}>+ Add action item</button>
+      <button className="ghost" disabled={readOnly} onClick={() => edit((x) => ({ ...x, actionItems: [...x.actionItems, { id: uid(), task: '', owner: 'Unassigned', due: '', status: 'Open', confidence: 1 }] }))}>+ Add action item</button>
 
       <h3>Export</h3>
       {exportError && <div className="banner error" role="alert">{exportError}</div>}
@@ -179,19 +189,20 @@ export default function MinutesEditor({ meetingId, onNew }: Props) {
           <button key={f} className="ghost" disabled={exporting !== null} onClick={() => doExport(f)}>{exporting === f ? 'Exporting…' : label}</button>
         ))}
         <span className="grow" />
-        <button onClick={onNew}>Start a new meeting</button>
+        {onNew && <button onClick={onNew}>Start a new meeting</button>}
       </div>
 
       {/* These need the real backend; the offline demo has no recording, history or mail. */}
       {!USE_MOCK && (
         <>
-          <ShareMinutes meetingId={meetingId} suggestions={m.attendees.map((a) => a.email).filter(Boolean)} />
+          {!readOnly && <ShareMinutes meetingId={meetingId} suggestions={m.attendees.map((a) => a.email).filter(Boolean)} />}
           <VersionHistory
             meetingId={meetingId}
             refreshKey={historyKey}
+            readOnly={readOnly}
             onRestored={() => { dirty.current = false; setSave('idle'); load(); }}
           />
-          <TranscriptPanel meetingId={meetingId} speakers={m.attendees.map((a) => a.name)} seek={seek} />
+          <TranscriptPanel meetingId={meetingId} speakers={m.attendees.map((a) => a.name)} seek={seek} readOnly={readOnly} />
         </>
       )}
     </div>
