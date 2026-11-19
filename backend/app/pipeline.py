@@ -283,7 +283,8 @@ def to_ui_minutes(raw: dict, meeting: MeetingDB, version: int = 1) -> dict:
     ]
     return {
         "version": version,
-        "title": raw.get("title") or meeting.title,
+        # The title the user typed wins; the generated one is only a fallback.
+        "title": meeting.title or raw.get("title") or "Meeting minutes",
         "datetime": when,
         "agenda": details.get("agenda", ""),
         "attendees": attendees,

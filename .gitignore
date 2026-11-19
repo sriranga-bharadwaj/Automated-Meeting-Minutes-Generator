@@ -28,3 +28,4 @@ coverage/
 !docs/coverage/
 !docs/coverage/**
 frontend/test-results/
+backend/.ammg_secret

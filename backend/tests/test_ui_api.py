@@ -197,7 +197,8 @@ def test_minutes_have_the_shape_the_ui_expects():
     minutes = client.get(f"/meetings/{meeting_id}/minutes").json()
 
     assert minutes["version"] == 1
-    assert minutes["title"] == "Demo planning"
+    # The title typed in the form wins over the generated one ("Demo planning").
+    assert minutes["title"] == "Sprint review"
     assert minutes["datetime"] == "2026-11-02T10:00"
     assert minutes["agenda"] == "Demo plan"
     assert minutes["attendees"] == [{"name": "Ravi", "email": "ravi@example.com"}]

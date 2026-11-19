@@ -32,3 +32,5 @@ def ensure_schema():
         cols = {row[1] for row in conn.exec_driver_sql("PRAGMA table_info(meetings)")}
         if cols and "details_json" not in cols:
             conn.exec_driver_sql("ALTER TABLE meetings ADD COLUMN details_json TEXT")
+        if cols and "owner_id" not in cols:
+            conn.exec_driver_sql("ALTER TABLE meetings ADD COLUMN owner_id TEXT")

@@ -1,4 +1,4 @@
-import type { ExportFormat, JobStatus, MeetingInput, Minutes } from './types';
+import type { ExportFormat, JobStatus, MeetingInput, MeetingSummary, Minutes, User } from './types';
 import { cleanAttendees, downloadBlob, toMarkdown, uid } from './utils';
 
 // The real FastAPI backend is the default. Set VITE_USE_MOCK=true for the offline demo.
@@ -27,8 +27,12 @@ const FRIENDLY: Record<number, string> = {
 // The backend explains these errors itself (e.g. "Unsupported audio file type."), so show its text.
 const BACKEND_EXPLAINS = new Set([400, 404, 409, 413, 422]);
 
-export function errorMessage(status: number, body: { message?: string; detail?: unknown }): string {
+// Login errors carry a code and a message written for the person (wrong password, locked account...).
+const SELF_EXPLAINING_CODES = new Set(['BAD_CREDENTIALS', 'LOCKED', 'EXISTS']);
+
+export function errorMessage(status: number, body: { code?: string; message?: string; detail?: unknown }): string {
   if (status >= 500 && status !== 502) return 'Something went wrong on the server. Please try again.';
+  if (body.message && body.code && SELF_EXPLAINING_CODES.has(body.code)) return body.message;
   if (BACKEND_EXPLAINS.has(status) && typeof body.detail === 'string') return body.detail;
   return FRIENDLY[status] ?? body.message ?? 'Request failed.';
 }
@@ -49,9 +53,56 @@ async function http(path: string, init: RequestInit = {}): Promise<Response> {
   } catch {
     throw new ApiError('NETWORK', 'Cannot reach the server. Check that the backend is running and try again.');
   }
-  if (!res.ok) throw await toError(res);
+  if (!res.ok) {
+    // A rejected token means the session ended: forget it and let the app show the login page.
+    if (res.status === 401 && token) {
+      clearSession();
+      window.dispatchEvent(new Event('ammg-logout'));
+    }
+    throw await toError(res);
+  }
   return res;
 }
+
+/* --------------------------------- session --------------------------------- */
+
+const USER_KEY = 'ammg_user';
+
+export function saveSession(token: string, user: User) {
+  sessionStorage.setItem('ammg_token', token);
+  sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+export function clearSession() {
+  sessionStorage.removeItem('ammg_token');
+  sessionStorage.removeItem(USER_KEY);
+}
+export function currentUser(): User | null {
+  try {
+    const raw = sessionStorage.getItem(USER_KEY);
+    return sessionStorage.getItem('ammg_token') && raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Log in or register; the backend returns a token that http() sends from then on. */
+export const auth = {
+  async login(email: string, password: string): Promise<User> {
+    const res = await http('/auth/login', { method: 'POST', ...json({ email, password }) });
+    const data = await res.json();
+    saveSession(data.token, data.user);
+    return data.user;
+  },
+  async register(name: string, email: string, password: string): Promise<User> {
+    const res = await http('/auth/register', { method: 'POST', ...json({ name, email, password }) });
+    const data = await res.json();
+    saveSession(data.token, data.user);
+    return data.user;
+  },
+  logout() {
+    clearSession();
+  },
+};
 
 const json = (body: unknown): RequestInit => ({
   headers: { 'Content-Type': 'application/json' },
@@ -61,6 +112,15 @@ const json = (body: unknown): RequestInit => ({
 /* ------------------------------ real backend ------------------------------ */
 
 const real = {
+  async listMeetings(): Promise<MeetingSummary[]> {
+    return (await http('/meetings')).json();
+  },
+  async deleteMeeting(id: string): Promise<void> {
+    await http(`/meetings/${id}`, { method: 'DELETE' });
+  },
+  async listUsers(): Promise<User[]> {
+    return (await http('/admin/users')).json();
+  },
   async createMeeting(m: MeetingInput): Promise<{ meetingId: string }> {
     const res = await http('/meetings', { method: 'POST', ...json({ ...m, attendees: cleanAttendees(m.attendees) }) });
     return { meetingId: (await res.json()).id };
@@ -155,6 +215,10 @@ function mockMinutes(job: MockJob): Minutes {
 }
 
 const mock = {
+  // The demo has no login or meeting list; these keep the two backends the same shape.
+  async listMeetings(): Promise<MeetingSummary[]> { return []; },
+  async deleteMeeting(_id: string): Promise<void> {},
+  async listUsers(): Promise<User[]> { return []; },
   async createMeeting(m: MeetingInput): Promise<{ meetingId: string }> {
     await wait(500);
     const id = uid();
