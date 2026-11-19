@@ -6,6 +6,12 @@ export const LOW_CONFIDENCE = 0.6;
 
 export const isLowConfidence = (c: number) => c < LOW_CONFIDENCE;
 
+/** 83.4 seconds -> "1:23" */
+export function formatTime(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
 // Same rule as the form's attendee check: something@something.something
 export const isEmail = (s: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.trim());
 

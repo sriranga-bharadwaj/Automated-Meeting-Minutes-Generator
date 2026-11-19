@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session
 
-from app import auth, jobs
+from app import audit, auth, crypto, jobs, security, versions
 from app.audio_check import AudioCheckError, check_audio_file
 from app.database import get_db
 from app.minutes_adapter import to_ui_minutes
@@ -87,13 +87,13 @@ def create_meeting(request: Request, body: dict = Body(...), db: Session = Depen
         data = MeetingInput.model_validate(body)
     except ValidationError:
         return _error(400, "INVALID", "Some of the details are invalid.")
-    title = data.title.strip()
+    title = security.sanitize_text(data.title).strip()
     if not title:
         return _error(400, "INVALID", "The meeting title cannot be blank.")
 
     attendees = [
-        {"name": a.name.strip(), "email": a.email.strip()}
-        for a in data.attendees if a.name.strip()
+        {"name": security.sanitize_text(a.name).strip(), "email": security.sanitize_text(a.email).strip()}
+        for a in data.attendees if security.sanitize_text(a.name).strip()
     ]
     meeting_id = str(uuid4())
     user = auth.current_user(request)
@@ -152,12 +152,13 @@ async def upload_audio(meeting_id: str, file: UploadFile = File(...), db: Sessio
             rejected = _error(400, "EMPTY", "The audio file is empty.")
         if rejected is None:
             try:
-                check_audio_file(str(destination))
+                check_audio_file(str(destination), file.content_type, extension)
             except AudioCheckError as exc:
                 rejected = _error(400, "NOT_AUDIO", str(exc))
         if rejected is not None:
             destination.unlink(missing_ok=True)
             return rejected
+        crypto.encrypt_file(destination)   # audio is encrypted at rest
         db.add(
             AudioDB(
                 id=audio_id,
@@ -221,10 +222,11 @@ def get_minutes(meeting_id: str, db: Session = Depends(get_db)):
 
 
 @router.put("/minutes/{meeting_id}")
-def save_minutes(meeting_id: str, body: dict = Body(...), db: Session = Depends(get_db)):
+def save_minutes(meeting_id: str, request: Request, body: dict = Body(...), db: Session = Depends(get_db)):
     content = body.get("content")
     if not isinstance(content, dict):
         return _error(400, "INVALID", "Some of the details are invalid.")
+    content = security.sanitize_obj(content)
     meeting = _get_meeting(db, meeting_id)
     row = _latest_minutes(db, meeting_id) if meeting is not None else None
     if meeting is None or row is None:
@@ -236,6 +238,8 @@ def save_minutes(meeting_id: str, body: dict = Body(...), db: Session = Depends(
     except (TypeError, ValueError):
         current = 1
     version = current + 1
+    user = auth.current_user(request)
+    versions.archive(db, meeting_id, stored["minutes"], current, user["email"] if user else None)
     content["version"] = version
     stored["minutes"] = content
     row.content_json = json.dumps(stored, ensure_ascii=False)

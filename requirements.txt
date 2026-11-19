@@ -11,3 +11,5 @@ ollama
 av<19
 python-docx
 reportlab
+argon2-cffi
+cryptography

@@ -1,0 +1,98 @@
+[
+  {
+    "id": "F-042",
+    "name": "Items link to the recording and playing jumps to that moment",
+    "pass": true,
+    "detail": "9 source buttons; first at 0s; audio position after click 30.6s"
+  },
+  {
+    "id": "F-022",
+    "name": "Edit transcript text and speaker; edits survive a reload",
+    "pass": true,
+    "detail": "speaker=Ravi"
+  },
+  {
+    "id": "F-043",
+    "name": "Saving keeps old versions and an old version can be restored",
+    "pass": true,
+    "detail": "versions listed 3 -> 4 after restore; topic title back to \"Demo Format\""
+  },
+  {
+    "id": "F-045",
+    "name": "Minutes are emailed as an attachment",
+    "pass": true,
+    "detail": "mail files 0 -> 1; has docx attachment: true"
+  },
+  {
+    "id": "F-050",
+    "name": "Action tracker lists items across meetings and marks one done",
+    "pass": true,
+    "detail": "5 items; 1 checked; filter Done shows 1"
+  },
+  {
+    "id": "SR-004",
+    "name": "Logout kills the access and refresh tokens",
+    "pass": true,
+    "detail": "old access token -> 401, old refresh token -> 401"
+  },
+  {
+    "id": "SR-004b",
+    "name": "Refresh token rotates and a reused one ends all sessions",
+    "pass": true,
+    "detail": "reuse -> 401; newer session after reuse -> 401"
+  },
+  {
+    "id": "SR-010",
+    "name": "Security headers are sent",
+    "pass": true,
+    "detail": "nosniff, X-Frame-Options DENY, CSP default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+  },
+  {
+    "id": "SR-002",
+    "name": "Recording and database text are encrypted on disk",
+    "pass": true,
+    "detail": "audio file starts with \"AMMGENC1\"; transcript/minutes words found in plain text in ammg.db: none"
+  },
+  {
+    "id": "F-060",
+    "name": "Admin console shows jobs, users, audit log",
+    "pass": true,
+    "detail": "jobs table mentions the meeting and READY; audit events seen: register, login, logout, share, transcript-edit"
+  },
+  {
+    "id": "SR-008a",
+    "name": "Audit log records logins, logouts, sharing and transcript edits",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "SR-008b",
+    "name": "Audit log can be verified",
+    "pass": true,
+    "detail": "hash chain intact"
+  },
+  {
+    "id": "SR-008c",
+    "name": "Admin changes a role and the change is audited",
+    "pass": true,
+    "detail": "role-change events in the audit log"
+  },
+  {
+    "id": "F-051",
+    "name": "Reminders run and report what they did",
+    "pass": true,
+    "detail": "Reminders sent: 1, skipped: 0, failed: 0.; mail files now 2"
+  },
+  {
+    "id": "F-061",
+    "name": "Retention purge works from the console",
+    "pass": true,
+    "detail": "a new meeting is kept when the limit is 30 days"
+  },
+  {
+    "id": "SR-007",
+    "name": "Login is rate limited (HTTP 429)",
+    "pass": true,
+    "detail": "status codes: 401 401 401 401 401 401 401 401 429 429 429 429"
+  }
+]

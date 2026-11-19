@@ -9,16 +9,26 @@ class UIAttendee(BaseModel):
     email: str = Field(default="", max_length=320)
 
 
+class UISource(BaseModel):
+    """The stretch of the recording an item came from (AMG-F-042)."""
+
+    start: float = 0.0
+    end: float = 0.0
+    text: str = ""
+
+
 class UITopic(BaseModel):
     id: str
     title: str = ""
     summary: str = ""
+    source: UISource | None = None
 
 
 class UIDecision(BaseModel):
     id: str
     statement: str = ""
     confidence: float = 1.0
+    source: UISource | None = None
 
 
 class UIActionItem(BaseModel):
@@ -28,6 +38,7 @@ class UIActionItem(BaseModel):
     due: str = ""
     status: Literal["Open", "Done"] = "Open"
     confidence: float = 1.0
+    source: UISource | None = None
 
 
 class UIMinutes(BaseModel):
