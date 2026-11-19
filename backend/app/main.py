@@ -1,6 +1,7 @@
 
 import json
 import logging
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
@@ -10,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
-from app import auth, export, pipeline
+from app import audit, auth, crypto, export, features, pipeline, security, sources, versions
 from app.audio_check import AudioCheckError, check_audio_file
 from app.database import Base, engine, ensure_schema, get_db
 from app.models import AudioDB, MeetingDB, MinutesDB, TranscriptDB, UserDB
@@ -44,27 +45,38 @@ ALLOWED_AUDIO_TYPES = {
 Base.metadata.create_all(bind=engine)
 ensure_schema()
 
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # Hourly background loop: deadline reminders, retention purge, audit-log purge.
+    features.start_scheduler()
+    yield
+
+
 app = FastAPI(
     title="Automated Meeting Minutes Generator",
     description="API for generating structured meeting minutes from audio.",
-    version="0.5.0",
+    version="0.6.0",
+    lifespan=lifespan,
 )
 
 # The React dev server normally reaches the API through its own proxy; CORS
 # is only needed if someone opens the API from the dev server's address directly.
+# Middleware order: the one added last runs first. Security headers wrap everything (also
+# the 401 and 429 answers), CORS comes next, and the login/rate-limit/ownership checks are innermost.
+app.add_middleware(auth.AuthMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Checks the login token and who owns a meeting (see app/auth.py).
-app.add_middleware(auth.AuthMiddleware)
+app.add_middleware(security.SecurityHeadersMiddleware)
 
 app.include_router(api_v1_router)
 app.include_router(auth.router)                     # /auth/..., /admin/users
 app.include_router(auth.router, prefix="/api/v1")   # same routes under /api/v1
+app.include_router(features.router)                 # transcript, versions, share, actions, admin console
+app.include_router(features.router, prefix="/api/v1")
 
 
 class AttendeeIn(BaseModel):
@@ -116,7 +128,7 @@ def create_meeting(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    title = payload.title.strip()
+    title = security.sanitize_text(payload.title).strip()
     user = auth.current_user(request)
 
     if not title:
@@ -128,17 +140,17 @@ def create_meeting(
     meeting = MeetingDB(
         id=str(uuid4()),
         title=title,
-        description=payload.description.strip(),
+        description=security.sanitize_text(payload.description).strip(),
         status="created",
         owner_id=user["id"] if user else None,
         created_at=datetime.now(timezone.utc),
         details_json=json.dumps(
-            {
+            security.sanitize_obj({
                 "datetime": payload.scheduled_for,
                 "agenda": payload.agenda.strip(),
                 "language": payload.language,
                 "attendees": [a.model_dump() for a in payload.attendees],
-            },
+            }),
             ensure_ascii=False,
         ),
     )
@@ -181,12 +193,14 @@ def get_meeting(meeting_id: str, db: Session = Depends(get_db)):
 
 
 @app.delete("/meetings/{meeting_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_meeting(meeting_id: str, db: Session = Depends(get_db)):
+def delete_meeting(meeting_id: str, request: Request, db: Session = Depends(get_db)):
     """Delete a meeting and its audio. The owner or an administrator may do this."""
     meeting = db.query(MeetingDB).filter(MeetingDB.id == meeting_id).first()
     if meeting is None:
         raise HTTPException(status_code=404, detail="Meeting not found.")
+    title = meeting.title
     auth.delete_meeting_data(db, meeting)
+    audit.log(db, "meeting-delete", auth.current_user(request), f"{meeting_id} ({title[:80]})")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -241,9 +255,10 @@ async def upload_meeting_audio(
                     audio_file.write(chunk)
 
             try:
-                check_audio_file(str(destination))
+                check_audio_file(str(destination), file.content_type, extension)
             except AudioCheckError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
+            crypto.encrypt_file(destination)   # audio is encrypted at rest
 
             audio_record = AudioDB(
                 id=audio_id,
@@ -431,13 +446,15 @@ def get_minutes(meeting_id: str, db: Session = Depends(get_db)):
     found = pipeline.current_ui_minutes(db, meeting)
     if found is None:
         raise HTTPException(status_code=404, detail="Minutes have not been generated yet.")
-    return found[0]
+    # Each item gets a "source" (seconds in the recording) when it can be linked to the transcript.
+    return sources.attach(found[0], features.segments_for(db, meeting_id))
 
 
 @app.put("/meetings/{meeting_id}/minutes")
 def save_minutes(
     meeting_id: str,
     payload: SaveMinutesRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ):
     meeting = _get_meeting_or_404(db, meeting_id)
@@ -453,7 +470,9 @@ def save_minutes(
         )
 
     new_version = current["version"] + 1
-    content = payload.content.model_dump()
+    user = auth.current_user(request)
+    versions.archive(db, meeting_id, current, current["version"], user["email"] if user else None)
+    content = security.sanitize_obj(payload.content.model_dump())
     content["version"] = new_version
     row.content_json = json.dumps(content, ensure_ascii=False)
     db.commit()
@@ -464,9 +483,11 @@ def save_minutes(
 def export_minutes(
     meeting_id: str,
     payload: ExportRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ):
     meeting = _get_meeting_or_404(db, meeting_id)
+    audit.log(db, "export", auth.current_user(request), f"{meeting_id} as {payload.format}")
     if payload.content is not None:
         minutes = payload.content.model_dump()
     else:

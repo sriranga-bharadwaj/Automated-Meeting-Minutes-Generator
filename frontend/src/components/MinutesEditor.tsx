@@ -1,10 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api, ApiError } from '../api';
-import type { ExportFormat, Minutes } from '../types';
-import { isLowConfidence, moveItem, uid } from '../utils';
+import { USE_MOCK, api, ApiError } from '../api';
+import type { ExportFormat, Minutes, Source } from '../types';
+import { formatTime, isLowConfidence, moveItem, uid } from '../utils';
+import ShareMinutes from './ShareMinutes';
+import TranscriptPanel from './TranscriptPanel';
+import VersionHistory from './VersionHistory';
 
 interface Props { meetingId: string; onNew: () => void }
 type Save = 'idle' | 'saving' | 'saved' | 'error';
+
+/** "▶ 1:23": plays the recording from where this item was said (AMG-F-042). */
+function Src({ source, play }: { source?: Source | null; play: (t: number) => void }) {
+  if (!source) return null;
+  return (
+    <button className="ghost src" title={`"${source.text}"`} aria-label={`Play recording from ${formatTime(source.start)}`} onClick={() => play(source.start)}>
+      ▶ {formatTime(source.start)}
+    </button>
+  );
+}
 
 function Move<T>({ list, i, set }: { list: T[]; i: number; set: (l: T[]) => void }) {
   return (
@@ -24,6 +37,9 @@ export default function MinutesEditor({ meetingId, onNew }: Props) {
   const [exportError, setExportError] = useState('');
   const dirty = useRef(false);
   const version = useRef(1);
+  const [seek, setSeek] = useState<{ time: number; n: number } | null>(null);
+  const [historyKey, setHistoryKey] = useState(0);
+  const play = (time: number) => setSeek({ time, n: Date.now() });
 
   const load = useCallback(async () => {
     setLoadError('');
@@ -49,6 +65,7 @@ export default function MinutesEditor({ meetingId, onNew }: Props) {
         dirty.current = false;
         setSaveError('');
         setSave('saved');
+        setHistoryKey((k) => k + 1);
       } catch (e) {
         setSave('error');
         setSaveError(e instanceof ApiError ? e.message : 'Could not save your changes.');
@@ -100,6 +117,7 @@ export default function MinutesEditor({ meetingId, onNew }: Props) {
             <input aria-label="Topic title" className="bold" value={t.title} onChange={(e) => edit((x) => ({ ...x, topics: x.topics.map((y) => (y.id === t.id ? { ...y, title: e.target.value } : y)) }))} />
             <textarea aria-label="Topic summary" rows={2} value={t.summary} onChange={(e) => edit((x) => ({ ...x, topics: x.topics.map((y) => (y.id === t.id ? { ...y, summary: e.target.value } : y)) }))} />
           </div>
+          <Src source={t.source} play={play} />
           <Move list={m.topics} i={i} set={(l) => edit((x) => ({ ...x, topics: l }))} />
           <button className="ghost danger" aria-label="Delete topic" onClick={() => edit((x) => ({ ...x, topics: x.topics.filter((y) => y.id !== t.id) }))}>✕</button>
         </div>
@@ -111,6 +129,7 @@ export default function MinutesEditor({ meetingId, onNew }: Props) {
         <div className={`item ${isLowConfidence(d.confidence) ? 'low' : ''}`} key={d.id}>
           <input className="grow" aria-label="Decision" value={d.statement} onChange={(e) => edit((x) => ({ ...x, decisions: x.decisions.map((y) => (y.id === d.id ? { ...y, statement: e.target.value } : y)) }))} />
           <span className="conf" title="Model confidence">{Math.round(d.confidence * 100)}%</span>
+          <Src source={d.source} play={play} />
           <Move list={m.decisions} i={i} set={(l) => edit((x) => ({ ...x, decisions: l }))} />
           <button className="ghost danger" aria-label="Delete decision" onClick={() => edit((x) => ({ ...x, decisions: x.decisions.filter((y) => y.id !== d.id) }))}>✕</button>
         </div>
@@ -141,6 +160,7 @@ export default function MinutesEditor({ meetingId, onNew }: Props) {
                   </td>
                   <td><span className="conf" title={isLowConfidence(a.confidence) ? 'Low confidence, please review' : 'Model confidence'}>{isLowConfidence(a.confidence) ? '⚠ ' : ''}{Math.round(a.confidence * 100)}%</span></td>
                   <td className="nowrap">
+                    <Src source={a.source} play={play} />
                     <Move list={m.actionItems} i={i} set={(l) => edit((x) => ({ ...x, actionItems: l }))} />
                     <button className="ghost danger" aria-label="Delete action item" onClick={() => edit((x) => ({ ...x, actionItems: x.actionItems.filter((y) => y.id !== a.id) }))}>✕</button>
                   </td>
@@ -161,6 +181,19 @@ export default function MinutesEditor({ meetingId, onNew }: Props) {
         <span className="grow" />
         <button onClick={onNew}>Start a new meeting</button>
       </div>
+
+      {/* These need the real backend; the offline demo has no recording, history or mail. */}
+      {!USE_MOCK && (
+        <>
+          <ShareMinutes meetingId={meetingId} suggestions={m.attendees.map((a) => a.email).filter(Boolean)} />
+          <VersionHistory
+            meetingId={meetingId}
+            refreshKey={historyKey}
+            onRestored={() => { dirty.current = false; setSave('idle'); load(); }}
+          />
+          <TranscriptPanel meetingId={meetingId} speakers={m.attendees.map((a) => a.name)} seek={seek} />
+        </>
+      )}
     </div>
   );
 }

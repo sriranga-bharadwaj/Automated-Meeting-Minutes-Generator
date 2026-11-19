@@ -38,6 +38,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from app import crypto
+
 logger = logging.getLogger(__name__)
 
 # Formats accepted by the upload endpoint (keep in sync with app.main).
@@ -189,6 +191,11 @@ def transcribe_audio(
 
     if not path.is_file():
         raise FileNotFoundError(f"Audio file not found: {audio_path}")
+
+    # Uploaded audio is encrypted at rest (app/crypto.py); work on a temporary plain copy.
+    if crypto.is_encrypted_file(path):
+        with crypto.decrypted_copy(path) as plain:
+            return transcribe_audio(str(plain), language=language, initial_prompt=initial_prompt)
 
     extension = path.suffix.lower()
     if extension not in SUPPORTED_EXTENSIONS:
