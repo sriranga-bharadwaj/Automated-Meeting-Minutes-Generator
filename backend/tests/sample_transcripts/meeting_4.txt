@@ -1,0 +1,10 @@
+[00:00:03] Rohan: Let's go through the project status. First, which database are we using for the final version?
+[00:00:10] Divya: SQLite is enough for the demo, and Postgres would take too long to set up.
+[00:00:17] Rohan: Okay, we go with SQLite for the final version.
+[00:00:23] Divya: I will write the export to Word feature by Wednesday.
+[00:00:30] Imran: I'll test the login flow on a phone and send the bugs to Rohan this weekend.
+[00:00:38] Rohan: Good. I will prepare the presentation slides before the review.
+[00:00:45] Imran: Somebody should also clean up the old branches in the repo.
+[00:00:51] Rohan: True, but nobody has time right now, so let's leave it without an owner for now.
+[00:00:58] Divya: Fine by me. That's everything from my side.
+[00:01:03] Rohan: Great, thanks all.

@@ -1,0 +1,10 @@
+[00:00:05] Neha: Thanks for joining. We have two things today, the user guide and the final testing.
+[00:00:12] Arjun: For the user guide, I think a short PDF is better than a long website.
+[00:00:19] Neha: Agreed, we will make the user guide as a short PDF.
+[00:00:25] Arjun: I'll write the first draft of the guide by Friday.
+[00:00:31] Meera: I can run the final tests on the whole pipeline next week.
+[00:00:38] Neha: Please do that before Meera's leave starts. And I will send the final report to the professor on Monday.
+[00:00:47] Arjun: Also, we should record a backup video of the demo in case the live one fails.
+[00:00:54] Neha: Good idea, but let's decide who does it later.
+[00:01:00] Meera: Okay. Nothing else from me.
+[00:01:04] Neha: Alright, meeting closed.
