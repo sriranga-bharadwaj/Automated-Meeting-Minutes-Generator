@@ -13,7 +13,7 @@ Terminal 2 (from `frontend/`):
     npm install
     npm run dev          # http://localhost:5173
 
-Vite forwards `/api/v1/...` to `http://localhost:8000/...`.
+Vite forwards `/api/v1/...` directly to the backend at `http://localhost:8000/api/v1/...`.
 
 ## Offline demo (no backend)
     cp .env.example .env     # then set VITE_USE_MOCK=true
@@ -24,14 +24,14 @@ Tip: in demo mode, upload a file with "fail" in its name (e.g. fail.mp3) to see 
 ## Endpoints the UI calls
 | Call | Purpose |
 |---|---|
-| `POST /meetings` | create a meeting (title, datetime, agenda, language, attendees) |
-| `POST /meetings/{id}/audio` | upload the recording (max 25 MB) |
-| `POST /meetings/{id}/process` | start transcription + minutes in the background (called right after upload) |
-| `GET /meetings/{id}/status` | poll progress: QUEUED, TRANSCRIBING, ANALYSING, READY, FAILED |
-| `POST /meetings/{id}/retry` | run processing again after a failure |
-| `GET /meetings/{id}/minutes` | fetch the minutes |
-| `PUT /meetings/{id}/minutes` | save edits (409 if someone else saved first) |
-| `POST /meetings/{id}/export` | download as `docx`, `pdf` or `md` |
+| `POST /api/v1/meetings` | create a meeting (title, datetime, agenda, language, attendees) |
+| `POST /api/v1/meetings/{id}/audio` | upload the recording (max 25 MB) |
+| `POST /api/v1/meetings/{id}/process` | start transcription + minutes in the background (called right after upload) |
+| `GET /api/v1/meetings/{id}/status` | poll progress: QUEUED, TRANSCRIBING, ANALYSING, READY, FAILED |
+| `POST /api/v1/meetings/{id}/retry` | run processing again after a failure |
+| `GET /api/v1/meetings/{id}/minutes` | fetch the minutes |
+| `PUT /api/v1/meetings/{id}/minutes` | save edits (409 if someone else saved first) |
+| `POST /api/v1/meetings/{id}/export` | download as `docx`, `pdf` or `md` |
 
 ## Tests and reports
     npm test             # unit tests
