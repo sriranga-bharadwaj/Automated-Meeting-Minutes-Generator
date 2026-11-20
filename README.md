@@ -88,6 +88,27 @@ later account is a normal **user**.
 - **Audit log**: logins, shares, exports, deletes, role changes and edits are recorded in a hash chain (Admin console).
 - See `docs/Requirements_Status.md` for what is and is not done.
 
-## Tests
-    cd backend && python -m pytest        # backend (some model tests are skipped unless Ollama is running)
-    cd frontend && npm test               # frontend unit tests
+## Tests & Coverage
+Run the backend test suite and generate code and branch coverage:
+
+```bash
+cd backend
+python -m pytest --cov=app --cov=minutes --cov-branch --cov-report=term-missing --cov-report=xml
+```
+
+Frontend unit tests:
+```bash
+cd frontend && npm test
+```
+
+## API Base Path
+All versioned meeting lifecycle endpoints are consolidated under `/api/v1` (e.g., `POST /api/v1/meetings`, `POST /api/v1/meetings/{id}/audio`, `GET /api/v1/meetings/{id}/status`, `GET /api/v1/meetings/{id}/minutes`).
+Root endpoints (`GET /` and `GET /health`) remain at the service root. See [docs/API_CONSOLIDATION.md](docs/API_CONSOLIDATION.md) for the full consolidation matrix.
+
+## GitHub Actions CI
+Automated testing is configured via `.github/workflows/backend-ci.yml`. It:
+- Triggers on every push to any branch and pull requests targeting `main`.
+- Runs on Ubuntu with Python 3.12 and cached pip dependencies.
+- Installs FFmpeg and all requirements.
+- Executes the complete backend test suite with branch coverage enforcement (`--cov-fail-under=70`).
+- Generates and uploads Cobertura `coverage.xml` artifacts.
