@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="54" failures="0" errors="0" time="13.36">
+    <testsuite name="src/auth.test.tsx" timestamp="2026-11-20T02:30:54.792Z" hostname="DESKTOP-HLEF7VK" tests="11" failures="0" errors="0" skipped="0" time="4.6507413">
+        <testcase classname="src/auth.test.tsx" name="Login &gt; asks for a valid email before calling the server" time="1.6819216">
+        </testcase>
+        <testcase classname="src/auth.test.tsx" name="Login &gt; logs in and passes the user on" time="0.7305092">
+        </testcase>
+        <testcase classname="src/auth.test.tsx" name="Login &gt; shows the server message for a wrong password" time="0.7471506">
+        </testcase>
+        <testcase classname="src/auth.test.tsx" name="Login &gt; registration needs a name and an 8 character password" time="0.7265169">
+        </testcase>
+        <testcase classname="src/auth.test.tsx" name="MeetingList &gt; lists meetings with a plain status and opens one" time="0.3184386">
+        </testcase>
+        <testcase classname="src/auth.test.tsx" name="MeetingList &gt; administrators also see owners and the user list" time="0.1210512">
+        </testcase>
+        <testcase classname="src/auth.test.tsx" name="MeetingList &gt; deletes after confirming" time="0.1448846">
+        </testcase>
+        <testcase classname="src/auth.test.tsx" name="MeetingList &gt; does not delete when the person cancels" time="0.1414276">
+        </testcase>
+        <testcase classname="src/auth.test.tsx" name="MeetingList &gt; shows an empty state" time="0.024822">
+        </testcase>
+        <testcase classname="src/auth.test.tsx" name="helpers &gt; isEmail needs an @ and a dot after it" time="0.0018499">
+        </testcase>
+        <testcase classname="src/auth.test.tsx" name="helpers &gt; friendlyProcessingError replaces decoder text and keeps other messages" time="0.0045391">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/features.test.tsx" timestamp="2026-11-20T02:30:54.815Z" hostname="DESKTOP-HLEF7VK" tests="19" failures="0" errors="0" skipped="0" time="5.7267232">
+        <testcase classname="src/features.test.tsx" name="ActionTracker &gt; lists actions, flags overdue ones and marks one done" time="1.1727274">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="ActionTracker &gt; sends the filters to the server and opens a meeting" time="0.5046086">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="ActionTracker &gt; shows an empty state" time="0.0461445">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="ShareMinutes &gt; rejects a bad address before sending" time="0.4696983">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="ShareMinutes &gt; sends to every address in the chosen format" time="0.7466913">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="ShareMinutes &gt; shows the server problem when the mail cannot be sent" time="0.1410025">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="VersionHistory &gt; explains when there is only one version" time="0.0409943">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="VersionHistory &gt; restores an older version after confirming" time="0.2227306">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="VersionHistory &gt; does nothing when the person cancels" time="0.0923227">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="TranscriptPanel &gt; shows segments with times, edits text and speaker, and saves them" time="0.9850597">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="TranscriptPanel &gt; still shows the transcript when the recording cannot be played" time="0.0320956">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="TranscriptPanel &gt; reports a transcript that is not there yet" time="0.0222174">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="AdminConsole &gt; shows jobs with their problem, users and the audit log" time="0.1669613">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="AdminConsole &gt; changes a role" time="0.1909929">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="AdminConsole &gt; checks the audit log and reports tampering" time="0.1257254">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="AdminConsole &gt; runs retention only after confirming and validates the number of days" time="0.5954617">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="AdminConsole &gt; shows the mail problem when reminders cannot be sent" time="0.1555782">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="helpers &gt; formatTime shows minutes and seconds" time="0.0019795">
+        </testcase>
+        <testcase classname="src/features.test.tsx" name="helpers &gt; secondsLeft reads the expiry of a token" time="0.0026367">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/roles.test.tsx" timestamp="2026-11-20T02:30:54.830Z" hostname="DESKTOP-HLEF7VK" tests="6" failures="0" errors="0" skipped="0" time="3.5678645">
+        <testcase classname="src/roles.test.tsx" name="meeting list by role &gt; an organizer can create meetings, delete their own, and only view invited ones" time="1.404232">
+        </testcase>
+        <testcase classname="src/roles.test.tsx" name="meeting list by role &gt; a participant has no New meeting button and sees only shared meetings" time="0.1031458">
+        </testcase>
+        <testcase classname="src/roles.test.tsx" name="meeting list by role &gt; a participant with nothing shared is told how meetings appear" time="0.0486733">
+        </testcase>
+        <testcase classname="src/roles.test.tsx" name="action tracker &gt; the Done checkbox is disabled for meetings the person was only invited to" time="0.2947675">
+        </testcase>
+        <testcase classname="src/roles.test.tsx" name="minutes of an invited meeting &gt; is read only: editing is disabled and sharing, restoring and saving are not offered" time="1.1881958">
+        </testcase>
+        <testcase classname="src/roles.test.tsx" name="minutes of an invited meeting &gt; the owner still edits, shares and restores" time="0.5185795">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/ui.test.tsx" timestamp="2026-11-20T02:30:54.838Z" hostname="DESKTOP-HLEF7VK" tests="6" failures="0" errors="0" skipped="0" time="1.7901421">
+        <testcase classname="src/ui.test.tsx" name="UI and usability &gt; blocks empty forms and explains required details" time="0.7796037">
+        </testcase>
+        <testcase classname="src/ui.test.tsx" name="UI and usability &gt; supports adding and removing attendees without losing the first row" time="0.3134017">
+        </testcase>
+        <testcase classname="src/ui.test.tsx" name="UI and usability &gt; creates a valid meeting and trims attendee details" time="0.2584484">
+        </testcase>
+        <testcase classname="src/ui.test.tsx" name="UI and usability &gt; rejects unsupported uploads and keeps generation disabled" time="0.2342059">
+        </testcase>
+        <testcase classname="src/ui.test.tsx" name="UI and usability &gt; shows microphone denial with an upload alternative" time="0.1554498">
+        </testcase>
+        <testcase classname="src/ui.test.tsx" name="UI and usability &gt; advances once processing is ready" time="0.0399189">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/utils.test.ts" timestamp="2026-11-20T02:30:54.844Z" hostname="DESKTOP-HLEF7VK" tests="12" failures="0" errors="0" skipped="0" time="0.0390761">
+        <testcase classname="src/utils.test.ts" name="validateAudio (TC-FE-02, TC-Aud-01) &gt; accepts supported formats" time="0.0063143">
+        </testcase>
+        <testcase classname="src/utils.test.ts" name="validateAudio (TC-FE-02, TC-Aud-01) &gt; rejects unsupported type, empty and oversize files" time="0.003547">
+        </testcase>
+        <testcase classname="src/utils.test.ts" name="validateAudio (TC-FE-02, TC-Aud-01) &gt; uses the backend upload limit of 25 MB" time="0.0010661">
+        </testcase>
+        <testcase classname="src/utils.test.ts" name="errorMessage (backend errors shown to the user) &gt; shows the explanation the backend sends for client errors" time="0.0016633">
+        </testcase>
+        <testcase classname="src/utils.test.ts" name="errorMessage (backend errors shown to the user) &gt; falls back to a friendly message for validation arrays and other codes" time="0.0009999">
+        </testcase>
+        <testcase classname="src/utils.test.ts" name="errorMessage (backend errors shown to the user) &gt; hides server error details" time="0.0006607">
+        </testcase>
+        <testcase classname="src/utils.test.ts" name="validateMeeting (TC-FE-01) &gt; passes a valid meeting" time="0.0044768">
+        </testcase>
+        <testcase classname="src/utils.test.ts" name="validateMeeting (TC-FE-01) &gt; flags empty title and missing date" time="0.0011724">
+        </testcase>
+        <testcase classname="src/utils.test.ts" name="validateMeeting (TC-FE-01) &gt; flags invalid attendee email and no attendees" time="0.0009442">
+        </testcase>
+        <testcase classname="src/utils.test.ts" name="confidence (TC-FE-03) &gt; flags only values below 0.6" time="0.0019421">
+        </testcase>
+        <testcase classname="src/utils.test.ts" name="moveItem and toMarkdown (TC-Min-02, TC-Min-05) &gt; reorders and ignores out-of-range moves" time="0.003003">
+        </testcase>
+        <testcase classname="src/utils.test.ts" name="moveItem and toMarkdown (TC-Min-02, TC-Min-05) &gt; renders all minutes sections" time="0.0029125">
+        </testcase>
+    </testsuite>
+</testsuites>
