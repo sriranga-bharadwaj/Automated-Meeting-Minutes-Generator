@@ -8,6 +8,10 @@ venv/
 
 # Test cache
 .pytest_cache/
+backend/.coverage
+backend/coverage.xml
+.coverage
+
 
 # Environment variables
 .env

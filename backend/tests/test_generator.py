@@ -11,8 +11,9 @@ SAMPLES = Path(__file__).parent / "sample_transcripts"
 
 def ollama_available() -> bool:
     try:
-        ollama.list()
-        return True
+        res = ollama.list()
+        models = [m.model for m in res.models] if hasattr(res, "models") else [m.get("name", "") or m.get("model", "") for m in res.get("models", [])]
+        return any("qwen2.5:7b" in str(m) for m in models)
     except Exception:
         return False
 
