@@ -1,6 +1,6 @@
 # Minutes generator: accuracy report
 
-Generated: 2026-11-19 23:32  
+Generated: 2026-11-20 10:49  
 Model: `qwen2.5:7b`
 
 ## Per transcript
@@ -9,9 +9,9 @@ Model: `qwen2.5:7b`
 |---|---|---|---|---|---|---|---|---|
 | meeting_1 | dev | 4 | 4 | 4 | 4 | 4 | 1/1/1 | 10 |
 | meeting_2 | dev | 4 | 4 | 4 | 4 | 4 | 1/1/1 | 11 |
-| meeting_3 | held-out | 4 | 3 | 3 | 3 | 3 | 1/1/1 | 9 |
-| meeting_4 | held-out | 4 | 4 | 4 | 4 | 4 | 1/1/1 | 10 |
-| meeting_5 | held-out | 4 | 4 | 4 | 4 | 3 | 1/1/1 | 12 |
+| meeting_3 | held-out | 4 | 4 | 4 | 4 | 4 | 1/1/1 | 10 |
+| meeting_4 | held-out | 4 | 4 | 4 | 4 | 4 | 1/1/1 | 8 |
+| meeting_5 | held-out | 4 | 3 | 3 | 3 | 3 | 1/1/1 | 11 |
 
 ## Results
 
@@ -23,7 +23,7 @@ Model: `qwen2.5:7b`
 | Action items: detection and correct owner | 1.00 | 0.92 | 0.96 | yes |
 | Decisions | 1.00 | 1.00 | 1.00 | n/a |
 
-Owner accuracy on matched items: 1.00. Deadline accuracy on matched items: 0.91.
+Owner accuracy on matched items: 1.00. Deadline accuracy on matched items: 1.00.
 
 ### Development transcripts (the prompt was tuned on these) (2 transcripts)
 
@@ -43,7 +43,7 @@ Owner accuracy on matched items: 1.00. Deadline accuracy on matched items: 1.00.
 | Action items: detection and correct owner | 1.00 | 0.95 | 0.97 | yes |
 | Decisions | 1.00 | 1.00 | 1.00 | n/a |
 
-Owner accuracy on matched items: 1.00. Deadline accuracy on matched items: 0.95.
+Owner accuracy on matched items: 1.00. Deadline accuracy on matched items: 1.00.
 
 ## How the scores are computed
 

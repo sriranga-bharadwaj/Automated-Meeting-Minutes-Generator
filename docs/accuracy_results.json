@@ -1,6 +1,6 @@
 {
   "model": "qwen2.5:7b",
-  "generated": "2026-11-19 23:32",
+  "generated": "2026-11-20 10:49",
   "predictions": {
     "meeting_1": {
       "title": "Demo Plan Finalization",
@@ -106,10 +106,10 @@
     },
     "meeting_3": {
       "title": "Release Decision and Action Items",
-      "summary": "The team decided to postpone the release to next week due to an open bug and assigned tasks for fixing the bug, updating the login page design, and booking the demo room.",
+      "summary": "The team decided to postpone the release to next week due to an open bug and assigned tasks for fixing the bug, updating the login page design, and drafting a test report.",
       "participants": [
-        "Anjali",
         "Karthik",
+        "Anjali",
         "Sana"
       ],
       "topics": [
@@ -137,6 +137,11 @@
           "deadline": "Thursday"
         },
         {
+          "task": "Draft the test report",
+          "owner": "Sana",
+          "deadline": null
+        },
+        {
           "task": "Book the demo room",
           "owner": null,
           "deadline": "before next Monday"
@@ -145,12 +150,8 @@
     },
     "meeting_4": {
       "title": "Project Status Update",
-      "summary": "The team discussed the database choice, assigned tasks, and noted some cleanup work for later.",
-      "participants": [
-        "Rohan",
-        "Divya",
-        "Imran"
-      ],
+      "summary": "The team discussed database choice, assigned tasks, and noted a pending cleanup task.",
+      "participants": [],
       "topics": [
         {
           "title": "Database Choice",
@@ -161,7 +162,7 @@
       "decisions": [
         {
           "decision": "Use SQLite for the final version",
-          "context": "Divya: SQLite is enough for the demo, and Postgres would take too long to set up."
+          "context": "Postgres would take too long to set up."
         }
       ],
       "action_items": [
@@ -188,28 +189,28 @@
       ]
     },
     "meeting_5": {
-      "title": "User Guide and Final Testing",
-      "summary": "The team discussed and assigned tasks for the user guide and final testing, and decided to record a backup video for the demo.",
+      "title": "User Guide and Testing Plan",
+      "summary": "The team agreed on the format of the user guide, assigned tasks for writing the guide and running tests, and discussed a backup video for the demo.",
       "participants": [
-        "Neha",
         "Arjun",
-        "Meera"
+        "Meera",
+        "Neha"
       ],
       "topics": [
         {
           "title": "User Guide",
-          "summary": "Agreed to make a short PDF and Arjun will write the first draft by Friday.",
+          "summary": "Agreed to make the user guide a short PDF and assigned tasks for writing the first draft and sending the final report.",
           "start_time": 12.0
         },
         {
           "title": "Final Testing",
-          "summary": "Meera will run the final tests on the whole pipeline next week before her leave starts.",
-          "start_time": 31.0
+          "summary": "Assigned tasks for running final tests and sending the final report.",
+          "start_time": 38.0
         },
         {
           "title": "Backup Video",
-          "summary": "Decided to record a backup video for the demo, but no one volunteered to do it.",
-          "start_time": 47.0
+          "summary": "Discussed the idea of recording a backup video for the demo but decided to park the task for later.",
+          "start_time": 59.0
         }
       ],
       "decisions": [
@@ -227,17 +228,12 @@
         {
           "task": "Run the final tests on the whole pipeline",
           "owner": "Meera",
-          "deadline": "before Meera's leave starts"
+          "deadline": "next week"
         },
         {
           "task": "Send the final report to the professor",
           "owner": "Neha",
           "deadline": "Monday"
-        },
-        {
-          "task": "Record a backup video of the demo",
-          "owner": null,
-          "deadline": null
         }
       ]
     }
@@ -245,8 +241,8 @@
   "seconds": {
     "meeting_1": 10.3,
     "meeting_2": 10.6,
-    "meeting_3": 8.8,
-    "meeting_4": 9.7,
-    "meeting_5": 11.5
+    "meeting_3": 9.9,
+    "meeting_4": 8.2,
+    "meeting_5": 11.0
   }
 }

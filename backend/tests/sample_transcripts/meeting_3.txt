@@ -1,10 +1,12 @@
-[00:00:04] Anjali: Okay, let's start. We need to decide whether the release still goes out this Friday.
-[00:00:11] Karthik: The audio upload bug is still open, so I think we should postpone the release to next week.
-[00:00:19] Sana: Agreed, a broken upload would be bad in the demo.
-[00:00:25] Anjali: Fine, we postpone the release to next week. Karthik, can you fix the audio upload bug by tomorrow?
-[00:00:34] Karthik: Yes, I'll fix it by tomorrow.
-[00:00:40] Anjali: I will update the login page design by Thursday.
-[00:00:47] Sana: I can draft the test report, but I don't know when I will finish it.
-[00:00:55] Anjali: That's okay, no deadline for the test report. Someone also needs to book the demo room before next Monday.
-[00:01:03] Karthik: Nobody has volunteered yet, so let's leave that open.
-[00:01:10] Anjali: Alright, that's all. Thanks everyone.
+[00:00:04] Okay, let's start. We need to decide whether the release still goes out this Friday.
+[00:00:11] The audio upload bug is still open, so I think we should postpone the release to next week.
+[00:00:19] Agreed, a broken upload would be bad in the demo.
+[00:00:25] Fine, we postpone the release to next week. Karthik, can you fix the audio upload bug by tomorrow?
+[00:00:34] Yes, I'll fix it by tomorrow.
+[00:00:40] Anjali, you said you would update the login page design by Thursday, right?
+[00:00:47] Yes, the login page design will be done by Thursday.
+[00:00:55] Sana, can you draft the test report? We don't have a deadline for it.
+[00:01:03] Sure, I'll draft it when I have time.
+[00:01:10] Someone also needs to book the demo room before next Monday.
+[00:01:16] Nobody has volunteered yet, so let's leave that open.
+[00:01:22] Alright, that's all. Thanks everyone.
