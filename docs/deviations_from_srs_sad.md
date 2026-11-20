@@ -86,23 +86,34 @@ Other differences inside delivered requirements:
 
 ## 7. Minutes accuracy (Test Plan target: action-item F1 of 0.75 or better)
 
-Measured with `backend/minutes/evaluate.py` on labelled transcripts, with
+Measured with `backend/minutes/evaluate.py` on 5 labelled transcripts in the
+format the app produces (timestamped text, no speaker labels), with
 `qwen2.5:7b` through Ollama on an NVIDIA GPU (about 52 tokens/s, about 10 s per
-transcript).
+transcript). Final run, 20-Nov-2026:
 
 | Group | Transcripts | Action-item precision | Recall | F1 |
 |---|---|---|---|---|
 | Held-out (not used for prompt tuning) | 3 | 1.00 | 0.92 | 0.96 |
-| Development (prompt tuned on these) | 2 | 0.88 | 0.88 | 0.88 |
+| Development (prompt tuned on these) | 2 | 1.00 | 1.00 | 1.00 |
+| All | 5 | 1.00 | 0.95 | 0.97 |
 
-The held-out F1 was identical in 3 repeated runs. On matched held-out items,
-owner accuracy was 1.00 and deadline accuracy 0.91, and decisions scored 1.00.
+The held-out F1 was 0.96 in each of three repeated runs. In the final run,
+owner accuracy on matched items was 1.00, deadline accuracy 1.00, and all 5
+labelled decisions were found. Scores on the development transcripts varied
+between runs (0.82 to 1.00), and the F1 over all 5 transcripts was 0.92 in one
+of the three runs and 0.97 in the other two. Quote the held-out figure.
+
+The first version of the held-out transcripts had a speaker name at the start
+of each line, which the app's own transcripts do not have. They were rewritten
+without names. The held-out F1 stayed at 0.96, deadline accuracy changed from
+0.91 to 1.00, and the one missed item moved from meeting_3 to meeting_5.
 
 Limitations: the sample is small (12 held-out action items, so one miss changes
 recall by about 0.08). The transcripts are clean written text made by the team,
 so speech-recognition errors and overlapping speech are not included. Real
 meetings are likely to score lower. Matching uses word overlap, so a correct
-item with different wording can count as a miss.
+item with different wording can count as a miss. The Test Plan asks for 20
+annotated meetings; 5 were used.
 
 ## 8. Added during testing
 
