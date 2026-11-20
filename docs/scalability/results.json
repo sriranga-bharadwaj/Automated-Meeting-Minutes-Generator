@@ -1,0 +1,47 @@
+{
+  "users": 100,
+  "jobs": 20,
+  "rounds": 5,
+  "setup_s": 30.1,
+  "audio": "quiet_room.wav",
+  "audio_kb": 2593,
+  "phase_a_100_users": {
+    "requests": 2000,
+    "failed": 0,
+    "failed_codes": [],
+    "mean_s": 3.752,
+    "p50_s": 3.337,
+    "p95_s": 9.041,
+    "max_s": 12.991,
+    "wall_s": 93.1
+  },
+  "jobs_submitted_at_once": {
+    "accepted_202": 20,
+    "rejected": 0,
+    "process_statuses": [
+      202
+    ],
+    "upload_statuses": [
+      201
+    ],
+    "max_accept_s": 0.204
+  },
+  "phase_b_100_users_while_jobs_queued": {
+    "requests": 2000,
+    "failed": 0,
+    "failed_codes": [],
+    "mean_s": 11.539,
+    "p50_s": 4.972,
+    "p95_s": 35.037,
+    "max_s": 46.257,
+    "wall_s": 259.7
+  },
+  "jobs_finished": {
+    "ready": 20,
+    "failed": 0,
+    "still_running_at_timeout": 0,
+    "first_done_s": 265.9,
+    "last_done_s": 1602.0,
+    "failures": []
+  }
+}
