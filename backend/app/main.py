@@ -167,9 +167,14 @@ def list_meetings(request: Request, db: Session = Depends(get_db)):
     """An administrator sees every meeting. Everyone else sees the meetings they own and the ones
     they were invited to (their email is in the attendee list); invited ones have owned=False."""
     user = auth.current_user(request)
-    emails = {u.id: u.email for u in db.query(UserDB).all()}
+    all_meetings = db.query(MeetingDB).order_by(MeetingDB.created_at.desc()).all()
+    owner_ids = {m.owner_id for m in all_meetings if m.owner_id}
+    emails = (
+        {uid: email for uid, email in db.query(UserDB.id, UserDB.email).filter(UserDB.id.in_(owner_ids)).all()}
+        if owner_ids else {}
+    )
     out = []
-    for m in db.query(MeetingDB).order_by(MeetingDB.created_at.desc()).all():
+    for m in all_meetings:
         owned = user is None or user["role"] == "admin" or m.owner_id == user["id"]
         if not owned and not auth.is_invited(db, m, user["email"]):
             continue

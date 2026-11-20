@@ -1,13 +1,28 @@
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = "sqlite:///./ammg.db"
 
+# SQLite handles many readers and one writer. The default pool (5 connections, 10 extra) ran out
+# when 100 people used the app at once, so the pool is larger and waiting is allowed to last longer.
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},
+    connect_args={"check_same_thread": False, "timeout": 30},
+    pool_size=30,
+    max_overflow=70,
+    pool_timeout=60,
 )
+
+
+@event.listens_for(engine, "connect")
+def _sqlite_settings(dbapi_connection, _record):
+    """WAL lets readers continue while one connection writes; busy_timeout waits for a lock instead of failing."""
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    cursor.execute("PRAGMA busy_timeout=30000")
+    cursor.close()
 
 SessionLocal = sessionmaker(
     autocommit=False,

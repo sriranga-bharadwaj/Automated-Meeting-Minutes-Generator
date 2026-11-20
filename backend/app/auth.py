@@ -36,6 +36,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app import audit, security
@@ -215,6 +216,15 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if claims is None:
             return _deny(401, "UNAUTHENTICATED", "Your session has expired. Please log in again.")
 
+        # The database checks block, so they run in a worker thread: on the event loop a busy database
+        # would freeze every request, including ones that need no database at all.
+        denied = await run_in_threadpool(self._authorize, request, claims, path)
+        if denied is not None:
+            return denied
+        return await call_next(request)
+
+    def _authorize(self, request: Request, claims: dict, path: str):
+        """Check the session, rate limit, role and meeting access. Returns a refusal response, or None to let the request through."""
         # Same session source as the routes use (tests replace get_db with their own database).
         session_source = request.app.dependency_overrides.get(get_db, get_db)()
         db = next(session_source)
@@ -249,7 +259,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                         return _deny(403, "FORBIDDEN", "You were invited to this meeting and can only view it.")
         finally:
             session_source.close()
-        return await call_next(request)
+        return None
 
 
 def current_user(request: Request) -> Optional[dict]:

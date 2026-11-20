@@ -62,7 +62,7 @@ Status of every functional (AMG-F), security (AMG-SR) and non-functional (AMG-NF
 | NF-002 | Accuracy | WER measured. Extraction (precision and recall) checked by hand on 2 clips, not scored with a script. |
 | NF-003 | Reliability | Not measured. |
 | NF-004 | Usability | Not measured (no survey). |
-| NF-005 | Scalability | Not measured (one background worker at a time). |
+| NF-005 | Scalability | Done in the load test (`docs/Scalability_Report.md`): 100 users at once, 0 failed requests of 4000; 20 jobs submitted together were all accepted and finished, one at a time (27 minutes in total). Pages were slow under load (median 3 to 5 s). Rate limiting was off for the test. |
 | NF-006 | Compatibility | Tested in Chrome only. |
 | NF-007 | Maintainability | Test suites exist; coverage report for the frontend `utils.ts` only. |
 | NF-008 | Accessibility | An axe check runs in the existing browser test; no manual audit. |
