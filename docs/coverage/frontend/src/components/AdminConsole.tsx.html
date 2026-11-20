@@ -1,0 +1,433 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for src/components/AdminConsole.tsx</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/components</a> AdminConsole.tsx</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">97% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>97/100</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">80.48% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>33/41</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>8/8</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">97% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>97/100</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useCallback, useEffect, useState } from 'react';
+import { api, ApiError } from '../api';
+import type { AuditRow, JobRow, Role, User } from '../types';
+&nbsp;
+interface Props { me: User }
+&nbsp;
+/** For administrators: processing jobs, users and roles, the audit log, reminders and retention. */
+export default function AdminConsole({ me }: Props) {
+  const [jobs, setJobs] = useState&lt;JobRow[] | null&gt;(null);
+  const [users, setUsers] = useState&lt;User[]&gt;([]);
+  const [audit, setAudit] = useState&lt;AuditRow[]&gt;([]);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [days, setDays] = useState('90');
+&nbsp;
+  const load = useCallback(async () =&gt; {
+    try {
+      const [j, u, a] = await Promise.all([api.adminJobs(), api.listUsers(), api.adminAudit()]);
+      setJobs(j); setUsers(u); setAudit(a);
+      setError('');
+<span class="branch-0 cbranch-no" title="branch not covered" >    } catch (e) {</span>
+<span class="cstat-no" title="statement not covered" >      setError(e instanceof ApiError ? e.message : 'Could not load the admin console.');</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+  }, []);
+  useEffect(() =&gt; { load(); }, [load]);
+&nbsp;
+  async function run(action: () =&gt; Promise&lt;string&gt;) {
+    setNotice(''); setError('');
+    try { setNotice(await action()); await load(); }
+    catch (e) { setError(e instanceof ApiError ? e.<span class="branch-0 cbranch-no" title="branch not covered" >message : 'That did not work.')</span>; }
+  }
+&nbsp;
+  const setRole = (u: User, role: Role) =&gt; run(async () =&gt; { await api.changeRole(u.id, role); return `${u.email} is now ${role}.`; });
+  const verify = () =&gt; run(async () =&gt; {
+    const r = await api.verifyAudit();
+    return r.<span class="branch-0 cbranch-no" title="branch not covered" >intact ? 'The audit log is intact.' : `</span>The audit log was changed: the first bad entry is #${r.first_bad_id}.`;
+  });
+  const retention = () =&gt; run(async () =&gt; {
+    const n = Number(days);
+    if (!Number.isInteger(n) || n &lt; 1) throw new ApiError('INVALID', 'Enter a whole number of days.');
+    if (!window.confirm(`Delete every meeting older than ${n} days, with its recording? This cannot be undone.`)) return 'Nothing was deleted.';
+    const r = await api.runRetention(n);
+    return `Deleted ${r.removed} meeting(s) older than ${r.days} days.`;
+  });
+  const reminders = () =&gt; run(async () =&gt; {
+    const r = await api.runReminders(<span class="branch-0 cbranch-no" title="branch not covered" >);</span>
+<span class="cstat-no" title="statement not covered" >    return `Reminders sent: ${r.sent}, skipped: ${r.skipped}, failed: ${r.failed}.`;</span>
+  });
+&nbsp;
+  return (
+    &lt;div className="card"&gt;
+      &lt;div className="head"&gt;&lt;h2&gt;Admin console&lt;/h2&gt;&lt;button className="ghost" onClick={load}&gt;Refresh&lt;/button&gt;&lt;/div&gt;
+      {error &amp;&amp; &lt;div className="banner error" role="alert"&gt;{error}&lt;/div&gt;}
+      {notice &amp;&amp; &lt;div className="banner warn" role="status"&gt;{notice}&lt;/div&gt;}
+&nbsp;
+      &lt;h3&gt;Processing jobs&lt;/h3&gt;
+      {jobs !== null &amp;&amp; jobs.length === <span class="branch-0 cbranch-no" title="branch not covered" >0 &amp;&amp; &lt;p className="muted"&gt;No meetings yet.&lt;/p&gt;}</span>
+      {jobs !== null &amp;&amp; jobs.length &gt; 0 &amp;&amp; (
+        &lt;div className="scroll"&gt;
+          &lt;table aria-label="Processing jobs"&gt;
+            &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Meeting&lt;/th&gt;&lt;th&gt;Owner&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;th&gt;Recording&lt;/th&gt;&lt;th&gt;Problem&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+            &lt;tbody&gt;
+              {jobs.map((j) =&gt; (
+                &lt;tr key={j.meeting_id}&gt;
+                  &lt;td className="bold"&gt;{j.title}&lt;/td&gt;&lt;td&gt;{j.owner_email ?? '—'}&lt;/td&gt;
+                  &lt;td&gt;{j.status} {j.status !== 'READY' &amp;&amp; j.status !== <span class="branch-0 cbranch-no" title="branch not covered" >'FAILED' ? `(${j.progress}%)` : '</span>'}&lt;/td&gt;
+                  &lt;td&gt;{j.audio_file ? `${j.audio_file} (${((j.<span class="branch-0 cbranch-no" title="branch not covered" >audio_bytes ?? 0) / 1</span>024 / 1024).toFixed(1)} MB)` : '—'}&lt;/td&gt;
+                  &lt;td&gt;{j.error ?? ''}&lt;/td&gt;
+                &lt;/tr&gt;
+              ))}
+            &lt;/tbody&gt;
+          &lt;/table&gt;
+        &lt;/div&gt;
+      )}
+&nbsp;
+      &lt;h3&gt;Users and roles&lt;/h3&gt;
+      &lt;div className="scroll"&gt;
+        &lt;table aria-label="Users and roles"&gt;
+          &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Email&lt;/th&gt;&lt;th&gt;Role&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+          &lt;tbody&gt;
+            {users.map((u) =&gt; (
+              &lt;tr key={u.id}&gt;
+                &lt;td&gt;{u.name}&lt;/td&gt;&lt;td&gt;{u.email}&lt;/td&gt;
+                &lt;td&gt;
+                  &lt;select aria-label={`Role of ${u.email}`} value={u.role} onChange={(e) =&gt; setRole(u, e.target.value as Role)} disabled={u.id === me.id}&gt;
+                    &lt;option value="admin"&gt;admin&lt;/option&gt;&lt;option value="organizer"&gt;organizer&lt;/option&gt;&lt;option value="participant"&gt;participant&lt;/option&gt;
+                  &lt;/select&gt;
+                &lt;/td&gt;
+              &lt;/tr&gt;
+            ))}
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/div&gt;
+&nbsp;
+      &lt;h3&gt;Maintenance&lt;/h3&gt;
+      &lt;div className="row no-print"&gt;
+        &lt;input aria-label="Retention days" inputMode="numeric" value={days} onChange={(e) =&gt; setDays(e.target.value)} style={{ flex: '0 0 90px' }} /&gt;
+        &lt;button className="ghost danger" onClick={retention}&gt;Delete meetings older than this many days&lt;/button&gt;
+        &lt;button className="ghost" onClick={reminders}&gt;Send deadline reminders now&lt;/button&gt;
+      &lt;/div&gt;
+&nbsp;
+      &lt;h3&gt;Audit log&lt;/h3&gt;
+      &lt;div className="actions left no-print"&gt;&lt;button className="ghost" onClick={verify}&gt;Check that the log is untouched&lt;/button&gt;&lt;/div&gt;
+      &lt;div className="scroll"&gt;
+        &lt;table aria-label="Audit log"&gt;
+          &lt;thead&gt;&lt;tr&gt;&lt;th&gt;When (UTC)&lt;/th&gt;&lt;th&gt;Who&lt;/th&gt;&lt;th&gt;Event&lt;/th&gt;&lt;th&gt;Detail&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+          &lt;tbody&gt;
+            {audit.map((a) =&gt; (
+              &lt;tr key={a.id}&gt;&lt;td className="nowrap"&gt;{a.ts?.replace('T', ' ').slice(0, 19)}&lt;/td&gt;&lt;td&gt;{a.<span class="branch-0 cbranch-no" title="branch not covered" >actor ?? '—'}&lt;</span>/td&gt;&lt;td&gt;{a.event}&lt;/td&gt;&lt;td&gt;{a.detail}&lt;/td&gt;&lt;/tr&gt;
+            ))}
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-11-20T02:31:31.719Z
+            </div>
+        <script src="../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
+    </body>
+</html>
+    
